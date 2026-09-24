@@ -1,0 +1,1430 @@
+<title>Payday</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e1117">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Payday">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<style>
+:root{
+  --ground:#E7EBEE; --surface:#FFFFFF; --sunk:#F1F4F6;
+  --ink:#141D26; --body:#38495A; --muted:#6F8296; --hair:#D3DBE1;
+  --accent:#0E6F62; --accent-soft:#D9EBE7;
+  --owe:#A8382C; --owe-soft:#F6E2DF;
+  --warn:#9A6B12; --warn-soft:#F7ECD6;
+  --done:#3F7A34;
+  --shadow:0 1px 2px rgba(20,29,38,.07), 0 6px 18px rgba(20,29,38,.05);
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0D141B; --surface:#161F29; --sunk:#111A23;
+  --ink:#EAF0F5; --body:#B7C6D3; --muted:#8195A7; --hair:#27333F;
+  --accent:#4FC0AE; --accent-soft:#12312D;
+  --owe:#E8897C; --owe-soft:#361D1A;
+  --warn:#E0B25C; --warn-soft:#332714;
+  --done:#7FC06F;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.28);
+}}
+:root[data-theme="dark"]{
+  --ground:#0D141B; --surface:#161F29; --sunk:#111A23;
+  --ink:#EAF0F5; --body:#B7C6D3; --muted:#8195A7; --hair:#27333F;
+  --accent:#4FC0AE; --accent-soft:#12312D;
+  --owe:#E8897C; --owe-soft:#361D1A;
+  --warn:#E0B25C; --warn-soft:#332714;
+  --done:#7FC06F;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--body);font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:"Archivo",system-ui,sans-serif;color:var(--ink);margin:0;text-wrap:balance}
+button{font-family:inherit}
+#app{max-width:560px;margin:0 auto;padding:0 16px;padding-block:0 96px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--ground);padding-block:12px 10px;border-bottom:1px solid var(--hair);margin:0 -16px;padding-inline:16px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand h1{font-size:19px;font-weight:800;letter-spacing:-.02em}
+.brand h1.daytitle{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.brand .right{display:flex;align-items:center;gap:10px}
+.brand .when{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.editbtn{appearance:none;border:1px solid var(--hair);background:var(--surface);color:var(--muted);border-radius:8px;padding:5px 10px;font:700 11px/1.4 "Archivo",sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.editbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.editbtn:disabled{opacity:.4;cursor:default}
+.tickall{appearance:none;flex:0 0 20px;width:20px;height:20px;margin:3px 0 0;border:2px solid var(--hair);border-radius:6px;background:var(--surface);cursor:pointer;display:grid;place-content:center}
+.tickall:checked{background:var(--accent);border-color:var(--accent)}
+.tickall:checked::after{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translateY(-1px)}
+.tickall:indeterminate{border-color:var(--accent)}
+.tickall:indeterminate::after{content:"";width:9px;height:2px;background:var(--accent)}
+.tickall:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.revert{appearance:none;border:1px solid var(--hair);background:var(--surface);color:var(--muted);border-radius:6px;padding:1px 6px;font-size:13px;line-height:1.3;cursor:pointer;margin-left:6px;vertical-align:middle}
+.revert:hover{color:var(--accent);border-color:var(--accent)}
+.revert:focus-visible{outline:2px solid var(--accent)}
+.editbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--hair);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+nav.tabs button{flex:1;appearance:none;border:0;background:none;cursor:pointer;padding:8px 4px 7px;border-radius:10px;font:600 11px/1.2 "Archivo",system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:5px}
+nav.tabs button .dot{width:18px;height:3px;border-radius:2px;background:transparent}
+nav.tabs button[aria-selected="true"]{color:var(--ink)}
+nav.tabs button[aria-selected="true"] .dot{background:var(--accent)}
+nav.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow)}
+section.blk{margin-block:18px}
+.eyebrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font:600 11px/1 "Archivo",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.eyebrow .num{letter-spacing:0;text-transform:none;font-weight:500}
+.note{font-size:12.5px;color:var(--muted);margin-top:9px}
+.weekbar{margin:10px 0 0;padding-top:8px;border-top:1px solid var(--hair);align-items:center}
+.wkmid{flex:1;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:0 8px}
+.wkmid #weekrange{margin-left:auto;white-space:nowrap}
+.weekbar .wkbtn{flex:0 0 auto;min-width:30px}
+.bal .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fnote{min-height:4.4em}
+.wknav{display:flex;align-items:center;gap:6px}
+.wkbtn{appearance:none;border:1px solid var(--hair);background:var(--surface);color:var(--ink);border-radius:6px;padding:0 8px;font:700 14px/1.5 "Archivo",sans-serif;cursor:pointer}
+.wkbtn.wkhome{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding:2px 7px}
+.wkbtn:focus-visible{outline:2px solid var(--accent)}
+.callout{padding:13px 14px;border-radius:var(--r);border:1px solid var(--hair);background:var(--sunk);font-size:13.5px}
+.callout b{color:var(--ink)}
+.callout.bad{background:var(--owe-soft);border-color:transparent;color:var(--ink)}
+.callout.warn{background:var(--warn-soft);border-color:transparent;color:var(--ink)}
+.callout.good{background:var(--accent-soft);border-color:transparent;color:var(--ink)}
+
+/* balance */
+.bal{padding:18px 16px 16px}
+.bal .lab{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.bal .fig{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+.bal .fig .sym{font-size:19px;color:var(--muted)}
+.bal input{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:38px;font-weight:600;line-height:1.05;letter-spacing:-.02em;color:var(--ink);background:none;border:0;border-bottom:2px dashed var(--hair);width:100%;max-width:230px;padding:0 0 2px}
+.bal input:focus{outline:none;border-bottom-color:var(--accent)}
+.floatbar{margin-top:14px}
+.floatbar .row{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.track{height:7px;border-radius:4px;background:var(--sunk);overflow:hidden}
+.track i{display:block;height:100%;border-radius:4px;background:var(--accent);transition:width .35s ease}
+.track.over i{background:var(--done)}
+
+/* generic rows */
+ul.list{list-style:none;margin:0;padding:0}
+ul.list li{display:flex;align-items:center;gap:11px;padding:11px 14px;border-top:1px solid var(--hair)}
+ul.list li:first-child{border-top:0}
+li.empty{color:var(--muted);font-size:13px;justify-content:center;padding:16px}
+.when-chip{flex:0 0 52px;font:600 11px/1.25 "IBM Plex Mono",monospace;color:var(--muted);text-align:center}
+.when-chip b{display:block;font-size:15px;color:var(--ink);font-weight:600}
+.who{flex:1;min-width:0}
+.who .nm{font-weight:600;color:var(--ink);font-size:14.5px}
+.who .sub{font-size:12px;color:var(--muted)}
+.amt{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:500;color:var(--ink);white-space:nowrap}
+.tag{display:inline-block;font:600 10px/1.6 "Archivo",sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:0 6px;border-radius:4px;margin-left:6px;cursor:pointer;border:0}
+.t-bounce{background:var(--owe-soft);color:var(--owe)}
+.t-due{background:var(--warn-soft);color:var(--warn)}
+.t-paid{background:var(--accent-soft);color:var(--accent)}
+li.st-bounce .amt{color:var(--owe)}
+li.st-paid .amt{color:var(--muted)}
+li.overdue{background:var(--owe-soft)}
+li.overdue .amt{color:var(--owe);font-weight:600}
+.cnt{font:600 11px/1 "IBM Plex Mono",monospace;color:var(--muted);margin-left:6px}
+.mult{font:700 11px/1 "IBM Plex Mono",monospace;color:var(--owe);margin-left:4px}
+
+/* kv rows */
+.kv{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--hair)}
+.kv:first-child{border-top:0}
+.kv .k{flex:1 1 120px;min-width:0;color:var(--body)}
+.kv.wrap{flex-wrap:wrap}
+.kv .extra{flex:1 1 100%;order:9;margin-top:2px}
+.kv .ed.n{flex:0 0 92px}
+.kv .k small{display:block;color:var(--muted);font-size:12px}
+.kv .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:500;color:var(--ink);white-space:nowrap}
+.kv.tot{background:var(--sunk)}
+.kv.tot .k,.kv.tot .v{font-weight:700;color:var(--ink)}
+.kv.off .k,.kv.off .v{color:var(--muted);text-decoration:line-through}
+
+/* inline editing */
+.ed{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--hair);border-radius:7px;padding:5px 8px;min-width:0}
+.ed.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;width:92px;text-align:right}
+.ed.t{width:100%}
+.ed.d{width:64px;text-align:center}
+.ed.dt{width:130px}
+.ed:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.edrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.x{appearance:none;border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:6px}
+.x:hover{color:var(--owe)}
+.x:focus-visible{outline:2px solid var(--accent)}
+.addbtn{appearance:none;width:100%;border:1px dashed var(--hair);background:none;color:var(--accent);border-radius:9px;padding:10px;font:700 11px/1.4 "Archivo",sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-top:10px}
+.addbtn:focus-visible{outline:2px solid var(--accent)}
+.hide-when-view{display:none}
+body.editing .hide-when-view{display:block}
+body.editing .addbtn{display:block}
+.addbtn{display:none}
+.ins{display:flex;align-items:center;padding:1px 12px;border-top:0}
+ul.list li.ins{padding:1px 12px;min-height:0;border-top:0}
+ul.list li.sect{padding:7px 14px 3px;font:600 10px/1.2 "Archivo",sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);background:var(--sunk)}
+.ins+.kv,.ins+.qsub,.ins+li{border-top:0}
+.insbtn{appearance:none;width:100%;height:16px;border:1px dashed var(--hair);background:transparent;color:var(--accent);border-radius:999px;font:700 12px/1 "Archivo",sans-serif;cursor:pointer;opacity:.55}
+.insbtn:hover,.insbtn:focus-visible{opacity:1;border-color:var(--accent);outline:0}
+.srcrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.payrow{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.paybtn{appearance:none;border:0;background:var(--accent);color:#08110c;border-radius:9px;padding:10px 16px;font:800 13px/1.2 "Archivo",sans-serif;letter-spacing:.04em;cursor:pointer}
+.story{padding:14px 16px}
+.story .big{font:800 20px/1.2 "Archivo",sans-serif;color:var(--ink);letter-spacing:-.01em}
+.story .line{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--hair);font-size:13.5px}
+.story .line:first-of-type{border-top:0}
+.story .line b{color:var(--ink)}
+.story .line .num{color:var(--muted)}
+.ed.search{width:100%;margin-bottom:10px;padding:10px 12px}
+.ed.n.paid{width:72px}
+.lnk{display:block;margin-top:6px;color:var(--accent);font:600 13px/1.4 "IBM Plex Mono",monospace;word-break:break-all}
+#sync{padding:12px 14px}#sync .edrow{margin-top:6px}#sync .edrow:first-child{margin-top:0}
+.appwrap{position:relative;display:flex}
+.appwrap .ed.t{padding-right:38px}
+.appdd{position:absolute;right:4px;top:50%;transform:translateY(-50%);appearance:none;border:0;background:transparent;color:var(--muted);font-size:16px;padding:4px 8px;cursor:pointer}
+.appmenu{position:absolute;right:0;top:calc(100% + 4px);min-width:180px;background:var(--surface);border:1px solid var(--hair);border-radius:9px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:20;overflow:hidden}
+.appmenu button{display:block;width:100%;text-align:left;appearance:none;border:0;background:transparent;color:var(--ink);font:600 14px/1.2 "Public Sans",sans-serif;padding:10px 14px;cursor:pointer}
+.appmenu button:hover,.appmenu button:focus-visible{background:var(--accent-soft);color:var(--accent);outline:0}
+.ext{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.addrow{display:none;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+body.editing .addrow{display:flex}
+.addrow .qmeta{flex-basis:100%}
+.edithint{margin:14px 0 0}
+body.editing .edithint{display:none}
+
+/* toggle (on/off) */
+.pw{appearance:none;border:0;background:none;cursor:pointer;padding:2px;color:var(--muted);flex:0 0 auto;border-radius:6px}
+.pw svg{display:block}
+.pw.on{color:var(--accent)}
+.pw:focus-visible{outline:2px solid var(--accent)}
+
+/* log */
+.logform{padding:14px 14px 12px;display:grid;gap:9px}
+.logform .row2{display:grid;grid-template-columns:120px 1fr;gap:9px}
+.logform input{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--hair);border-radius:9px;padding:10px 12px;width:100%;min-width:0}
+.logform input[inputmode=decimal]{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.logform input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.logform .btns{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.logform .btns.one{grid-template-columns:1fr}
+.logform .btns button[hidden]{display:none}
+.logform button{appearance:none;border:0;border-radius:9px;padding:11px 10px;cursor:pointer;font:700 12px/1 "Archivo",sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.logform button.spent{background:var(--owe-soft);color:var(--owe)}
+.logform button.got{background:var(--accent-soft);color:var(--accent)}
+.logform button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+ul.log li{padding:10px 14px}
+ul.log .lt{font:500 11px/1.3 "IBM Plex Mono",monospace;color:var(--muted);flex:0 0 58px}
+ul.log .ln{flex:1;min-width:0;color:var(--ink);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ul.log .la{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+ul.log .la.out{color:var(--owe)}
+ul.log .la.in{color:var(--done)}
+
+/* projection table */
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:9px 10px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal;width:100%}
+.autobtn{font:600 10px/1 "Archivo",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--sunk);border:1px solid var(--hair);border-radius:999px;padding:5px 8px;margin-right:6px;cursor:pointer}
+.autobtn.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.morebtn{display:block;width:100%;appearance:none;border:0;border-top:1px solid var(--hair);background:transparent;color:var(--accent);padding:11px;font:600 12px/1 "Archivo",sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.buysline{font:500 11.5px/1.35 "Public Sans",sans-serif;color:var(--accent);margin-top:2px}
+thead th{font:600 10px/1.2 "Archivo",sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--hair)}
+tbody td{border-bottom:1px solid var(--hair);font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+tbody td:first-child{font-family:"Public Sans",sans-serif;font-weight:600;color:var(--ink)}
+tbody tr:last-child td{border-bottom:0}
+td.neg{color:var(--owe)}
+tbody tr.buy td{background:var(--accent-soft)}
+
+/* queue groups */
+.qgrp{border-top:1px solid var(--hair)}
+.qgrp:first-child{border-top:0}
+.qgrp.notcounted{opacity:.7}
+.qhead{display:flex;gap:8px;align-items:flex-start;padding:12px 12px 12px 8px}
+.handle{display:none;color:var(--muted);cursor:grab;padding:4px 2px;flex:0 0 auto;touch-action:none}
+body.editing .handle{display:block}
+.handle svg{display:block}
+.chev{appearance:none;border:0;background:none;color:var(--muted);cursor:pointer;padding:3px;margin-top:1px;border-radius:6px;transition:transform .18s ease}
+.qgrp.open .chev{transform:rotate(90deg)}
+.chev:focus-visible{outline:2px solid var(--accent)}
+.qbody{flex:1;min-width:0}
+.qtitle{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.qtitle .nm{font-weight:600;color:var(--ink);font-size:14.5px}
+.qgrp.milestone .qtitle .nm{font-weight:800;letter-spacing:.02em}
+.qgrp.done .qtitle .nm{text-decoration:line-through;color:var(--muted)}
+.qmeta{font-size:12.5px;color:var(--muted);margin-top:3px}
+.qwhen{font:600 10px/1.6 "Archivo",sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-top:5px}
+.qgrp.notcounted .qwhen{color:var(--muted)}
+.qsubs{display:none;background:var(--sunk);border-top:1px solid var(--hair)}
+.qgrp.open .qsubs{display:block}
+.qsub{display:flex;gap:9px;align-items:flex-start;padding:9px 12px 9px 26px;border-top:1px solid var(--hair)}
+.qsub:first-child{border-top:0}
+.qsub .body{flex:1;min-width:0}
+.qsub .row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.qsub .nm{font-weight:500;font-size:13.5px;color:var(--ink)}
+.qsub .amt{font-size:13px}
+.qsub .qmeta{font-size:11.5px;margin-top:2px}
+.qsub.off .nm,.qsub.off .amt,.qsub.off .qmeta{color:var(--muted);text-decoration:line-through}
+.qsub.bought .nm{text-decoration:line-through;color:var(--muted)}
+.qsub.bought .amt{color:var(--done)}
+.tick{appearance:none;flex:0 0 18px;width:18px;height:18px;margin:3px 0 0;border:2px solid var(--hair);border-radius:5px;background:var(--surface);cursor:pointer;display:grid;place-content:center}
+.tick:checked{background:var(--accent);border-color:var(--accent)}
+.tick:checked::after{content:"";width:8px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translateY(-1px)}
+.tick:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.amtcol{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 0 auto}
+.delsel{appearance:none;border:1px solid var(--owe);background:transparent;color:var(--owe);border-radius:6px;padding:2px 8px;cursor:pointer;font:700 10px/1.4 "Archivo",sans-serif;letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
+.delsel:disabled{opacity:.4;cursor:default}
+.lock{appearance:none;border:1px solid var(--hair);background:var(--surface);color:var(--muted);border-radius:6px;padding:2px 6px;cursor:pointer;display:flex;align-items:center;gap:4px;font:700 10px/1.4 "Archivo",sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.lock svg{display:block}
+.lock.on{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.lock:focus-visible{outline:2px solid var(--accent)}
+.qgrp.locked .handle{display:none!important}
+.qgrp.locked .tick,.qgrp.locked .pw,.qgrp.locked .tickall{opacity:.45;cursor:not-allowed}
+.sortable-ghost{opacity:.35}
+.sortable-chosen{background:var(--accent-soft)}
+.gbtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mini{appearance:none;border:1px solid var(--hair);background:var(--surface);color:var(--muted);border-radius:7px;padding:3px 8px;font:700 10px/1.5 "Archivo",sans-serif;letter-spacing:.07em;text-transform:uppercase;cursor:pointer}
+.mini.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.mini:focus-visible{outline:2px solid var(--accent)}
+.saved{font-size:11.5px;color:var(--muted);text-align:center;padding:10px 0 0}
+.ms li{padding:11px 14px}
+.ms .pip{flex:0 0 9px;width:9px;height:9px;border-radius:50%;background:var(--hair)}
+.ms li.big .pip{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.ms li.past .pip{background:var(--done)}
+.ms .t{flex:1;font-weight:600;color:var(--ink);font-size:14.5px;min-width:0}
+.ms .handle.mh{display:none;color:var(--muted);cursor:grab;flex:0 0 auto}
+body.editing .ms .handle.mh{display:inline-flex}
+.pipbtn{appearance:none;border:0;background:transparent;padding:6px;margin:-6px;cursor:pointer;display:flex;align-items:center}
+.pipbtn .pip{flex:0 0 9px;width:9px;height:9px;border-radius:50%;background:var(--hair)}
+.pipbtn.on .pip{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.ms .d{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);white-space:nowrap}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <h1 class="daytitle" id="today">—</h1>
+      <div class="right">
+        <button class="editbtn" id="undobtn" disabled aria-label="Undo the last change" title="Undo (Ctrl+Z)">Undo</button>
+        <button class="editbtn" id="editbtn" aria-pressed="false">Edit</button>
+      </div>
+    </div>
+    <div class="eyebrow weekbar" id="weekbar">
+      <button type="button" class="wkbtn" id="wk-prev" aria-label="Previous pay week">&#8249;</button>
+      <span class="wkmid"><span id="weektitle">This pay week</span><button type="button" class="wkbtn wkhome" id="wk-home" hidden>this week</button><span class="num" id="weekrange"></span></span>
+      <button type="button" class="wkbtn" id="wk-next" aria-label="Next pay week">&#8250;</button>
+    </div>
+  </header>
+
+  <!-- NOW -->
+  <div id="p-now">
+    <section class="blk" style="margin-top:14px">
+      <div id="nextpull" class="callout warn" hidden style="margin-bottom:12px"></div>
+      <div class="card bal">
+        <div class="lab">In the bank</div>
+        <div class="fig"><span class="sym">$</span><input id="bal" type="text" inputmode="decimal" aria-label="Current bank balance"></div>
+        <div class="floatbar">
+          <div class="row"><span>Against the floor of <span class="num" id="floorlab"></span></span><span class="num" id="floatpc"></span></div>
+          <div class="track" id="ftrack"><i id="fbar"></i></div>
+          <div class="note" id="fnote"></div>
+        </div>
+        <div class="payrow" id="payrow" hidden><button type="button" class="paybtn" id="paybtn">Pay landed</button><button type="button" class="mini" id="payskip">It is already in the balance</button></div>
+      </div>
+    </section>
+
+    <section class="blk">
+      <div class="card"><ul class="list" id="thisweek"></ul></div>
+      <div class="addrow" id="now-add">
+        <button type="button" class="mini" id="now-add-weekly">+ Weekly cost</button>
+        <button type="button" class="mini" id="now-add-monthly">+ Monthly bill</button>
+        <button type="button" class="mini" id="now-add-single">+ Single payment</button>
+        <button type="button" class="mini" id="now-add-loan">+ Loan</button>
+        <span class="qmeta">A new line lands in this week. Name it and set the amount here; the day, the dates and assumed live in Plan.</span>
+      </div>
+      <div id="weeknote" class="callout" style="margin-top:12px"></div>
+    </section>
+
+    <section class="blk">
+      <div class="eyebrow"><span>Money in or out</span><span>add a note</span></div>
+      <div class="card">
+        <form class="logform" id="logform" autocomplete="off">
+          <div class="row2">
+            <input id="log-amt" type="text" inputmode="decimal" placeholder="0.00" aria-label="Amount">
+            <input id="log-note" type="text" placeholder="What was it" aria-label="Note" maxlength="60">
+          </div>
+          <div class="srcrow" id="log-src">
+            <button type="button" class="mini on" data-src="cash">Cash</button>
+            <button type="button" class="mini" data-src="advance">Advance</button>
+          </div>
+          <div class="ext" id="log-ext" hidden>
+            <div class="appwrap"><input class="ed t" id="lg-app" placeholder="App name" aria-label="App name" autocomplete="off"><button type="button" class="appdd" id="lg-appdd" aria-label="Pick an app" aria-expanded="false">&#9662;</button><div class="appmenu" id="applist" hidden></div></div>
+            <div class="edrow"><button type="button" class="mini on" id="lg-bank" aria-pressed="true">Lands in the bank</button><button type="button" class="mini" id="lg-firstnow" aria-pressed="false">1st payment now</button><button type="button" class="mini" id="lg-save" title="Keep these numbers as the preset for this app">Save as preset</button></div>
+            <div class="edrow"><span class="qmeta">repay</span><input class="ed n" id="lg-total" inputmode="decimal" placeholder="same" aria-label="Total to repay"><span class="qmeta">in</span><input class="ed d" id="lg-count" inputmode="numeric" value="4" aria-label="Number of payments"><span class="qmeta">payments, every</span><input class="ed d" id="lg-every" inputmode="numeric" value="7" aria-label="Days between payments"><span class="qmeta">days</span></div>
+            <div class="edrow"><span class="qmeta">first</span><input class="ed dt" id="lg-first" type="date" aria-label="First payment date"><button type="button" class="mini" id="lg-today">Today</button><button type="button" class="mini" id="lg-payday">Payday</button><select class="ed d" id="lg-wd" aria-label="Or a set day of the week" style="width:auto"><option value="">a day...</option></select></div>
+            <div class="edrow"><span class="qmeta">bounce fee</span><input class="ed n" id="lg-fee" inputmode="decimal" value="5.00" aria-label="Bounce fee"></div>
+            <div class="qmeta" id="lg-hint"></div>
+          </div>
+          <div class="btns">
+            <button type="button" class="spent" id="log-spent">Spent</button>
+            <button type="button" class="got" id="log-got">Came in</button>
+          </div>
+        </form>
+        <ul class="list log" id="loglist"></ul>
+      </div>
+      <div class="note">Each entry moves the balance above. A tick on any line does the same and writes a line here; the untick takes it back. In edit mode you can change a line, flip it between spent and came in, or remove it with ×.</div>
+    </section>
+
+  </div>
+
+  <!-- WEEKS -->
+  <div id="p-weeks" hidden>
+    <section class="blk">
+      <div class="card story" id="story"></div>
+    </section>
+    <section class="blk">
+      <div class="eyebrow"><span>The next paydays</span><span>projected</span></div>
+      <div class="card"><div class="scroller"><table>
+        <thead><tr><th>Payday</th><th>In</th><th>Out</th><th>End</th></tr></thead>
+        <tbody id="proj"></tbody>
+      </table></div><button type="button" class="morebtn" id="proj-more" hidden></button></div>
+      <div class="note">Out is the weekly costs, the bills that fall in that week, any debt due, and the spending money once the floor is held. A buy line shows what the queue takes that week.</div>
+    </section>
+
+    <section class="blk">
+      <div class="eyebrow"><span>Coming up</span><span>eight weeks, at their dates</span></div>
+      <div class="card"><ul class="list" id="upcoming"></ul></div>
+    </section>
+
+    <section class="blk">
+      <div class="eyebrow"><span>Debt payments</span><span class="num" id="debtleft"></span></div>
+      <div class="card"><ul class="list" id="debts"></ul></div>
+      <button class="addbtn" id="add-debt">+ Add a single payment</button>
+      <div class="card hide-when-view" id="loanform" style="margin-top:10px;padding:12px 14px">
+        <div class="eyebrow"><span>Add a loan by its contract</span></div>
+        <div class="edrow" style="margin-bottom:8px"><input class="ed t" id="ln-app" placeholder="App name, eg moneyspot" aria-label="App name"></div>
+        <div class="edrow" style="margin-bottom:8px">
+          <span class="qmeta">total</span><input class="ed n" id="ln-total" inputmode="decimal" placeholder="0.00" aria-label="Total to repay">
+          <span class="qmeta">payments</span><input class="ed d" id="ln-count" inputmode="numeric" value="4" aria-label="Number of payments">
+          <span class="qmeta">every</span><input class="ed d" id="ln-every" inputmode="numeric" value="7" aria-label="Days between payments"><span class="qmeta">days</span>
+        </div>
+        <div class="edrow" style="margin-bottom:8px">
+          <span class="qmeta">first</span><input class="ed dt" id="ln-first" type="date" aria-label="First payment date">
+          <span class="qmeta">bounce fee</span><input class="ed n" id="ln-fee" inputmode="decimal" value="5.00" aria-label="Bounce fee">
+        </div>
+        <button type="button" class="mini on" id="ln-add">Add the loan</button>
+        <div class="note">Same name as an existing loan and it becomes moneyspot 2, moneyspot 3. Bounces are worked out from the balance on the day.</div>
+      </div>
+      <div class="note">Whether a payment bounces is worked out from the balance on its date, not chosen. A bounce retries a week later with the fee and slides the rest of that loan by a week. Tap a tag only to override what the app worked out.</div>
+    </section>
+  </div>
+
+  <!-- BUY -->
+  <div id="p-buy" hidden>
+    <section class="blk">
+      <input id="qsearch" class="ed t search" type="search" placeholder="Search the lists" aria-label="Search the lists" autocomplete="off">
+      <div class="card bal" style="padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">
+          <span id="qcount"></span><span class="num" id="qmoney"></span>
+        </div>
+        <div class="track"><i id="qbar"></i></div>
+        <div class="note">Every line has three states: the box ticks it bought, the power dot greys it out of the totals and dates, and untouched it waits in the queue. The box on a list ticks everything in it; untick one line and only that line changes. The ↺ on a list puts it back to before the tick-all. Lock under a total freezes that list: nothing in or out, no ticks, no toggles, no edits, until you unlock it. Undo is at the top, or Ctrl+Z. Edit mode adds drag handles for reordering or moving a line between lists.</div>
+      </div>
+    </section>
+    <section class="blk">
+      <div class="eyebrow"><span>The queue, in order</span><span>reached by</span></div>
+      <div class="card" id="lists"></div>
+      <button class="addbtn" id="add-list">+ New list</button>
+      <button class="addbtn" id="reset-lists" style="color:var(--muted)">Reset the queue to the plan</button>
+    </section>
+  </div>
+
+  <!-- PLAN -->
+  <div id="p-plan" hidden>
+    <section class="blk">
+      <div class="eyebrow"><span>Every payday</span></div>
+      <div class="card" id="settings"></div>
+    </section>
+
+    <div class="note edithint">Tap Edit at the top to add a weekly cost, a monthly bill, a single payment or a loan, and to change names, amounts and dates.</div>
+    <section class="blk">
+      <div class="eyebrow"><span>Weekly costs</span><span class="num" id="weeklytot"></span></div>
+      <div class="card" id="weekly"></div>
+      <button class="addbtn" id="add-weekly">+ Add a weekly cost</button>
+    </section>
+
+    <section class="blk">
+      <div class="eyebrow"><span>Monthly bills</span><span class="num" id="monthlytot"></span></div>
+      <div class="card" id="monthly"></div>
+      <button class="addbtn" id="add-monthly">+ Add a monthly bill</button>
+      <div class="note">Day is the day of the month it comes out. From and until are optional: the bill counts from that date, and stops after the until date. Leave until empty and it runs until you delete it. The weekly and monthly buttons move a line between the two groups.</div>
+    </section>
+
+    <section class="blk">
+      <div class="eyebrow"><span>Phone and computer</span><span>one copy</span></div>
+      <div class="card" id="install"></div>
+      <div class="card" id="sync" style="margin-top:10px"></div>
+      <div class="note">The installed app keeps its data on the phone. With a GitHub token that can only touch gists, and the id of a secret gist, every change goes up to the gist and the other side takes it on its next open. Without a token, Download a copy and Restore from a copy move the data by file.</div>
+    </section>
+
+    <section class="blk">
+      <div class="eyebrow"><span>App presets</span><span>for the Advance form</span></div>
+      <div class="card" id="presets"></div>
+      <button class="addbtn" id="add-preset">+ Add an app</button>
+      <div class="note">Pick an app on the Advance form and these numbers fill the form. Repay is the amount plus the percent plus the fixed fee. Put each app's contract here once and it is built right every time.</div>
+    </section>
+
+    <section class="blk">
+      <div class="eyebrow"><span>What that makes</span></div>
+      <div class="card" id="derived"></div>
+    </section>
+
+    <section class="blk">
+      <div class="eyebrow"><span>Milestones</span><span>from the queue</span></div>
+      <div class="card"><ul class="list ms" id="miles"></ul></div>
+    </section>
+    <p class="saved" id="savemsg">&nbsp;</p>
+  </div>
+</div>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button role="tab" id="t-now"   aria-selected="true"  aria-controls="p-now"><span class="dot"></span>Cash</button>
+  <button role="tab" id="t-weeks" aria-selected="false" aria-controls="p-weeks"><span class="dot"></span>Weeks</button>
+  <button role="tab" id="t-buy"   aria-selected="false" aria-controls="p-buy"><span class="dot"></span>Buy</button>
+  <button role="tab" id="t-plan"  aria-selected="false" aria-controls="p-plan"><span class="dot"></span>Plan</button>
+</nav>
+
+<script>
+var SEED = {"settings": {"pay": 1000, "spending": 100, "floor": 1000, "buffer": 17.5, "firstPayday": "2026-09-24", "startBalance": 242.94}, "weekly": [{"id": "w0", "nm": "Rent", "amt": 300, "note": "", "auto": true}, {"id": "w1", "nm": "Food", "amt": 100, "note": "", "auto": true}, {"id": "w2", "nm": "Smokes", "amt": 50, "note": "", "auto": true}], "monthly": [{"id": "m0", "nm": "Public transport", "amt": 20, "day": 1, "from": "", "auto": true}, {"id": "m1", "nm": "YouTube", "amt": 20, "day": 9, "from": "", "auto": true}, {"id": "m2", "nm": "Phone", "amt": 90, "day": 25, "from": "", "auto": true}, {"id": "m3", "nm": "Clothing, to replace damage", "amt": 200, "day": 1, "from": "2026-11-01", "auto": false}, {"id": "m4", "nm": "Toiletries", "amt": 40, "day": 1, "from": "2026-11-01", "auto": false}, {"id": "m5", "nm": "Utensils", "amt": 100, "day": 1, "from": "2026-11-01", "auto": false}, {"id": "m6", "nm": "Linen", "amt": 100, "day": 1, "from": "2026-11-01", "auto": false}, {"id": "m7", "nm": "Cleaning supplies", "amt": 100, "day": 1, "from": "2026-11-01", "auto": false}, {"id": "m8", "nm": "Claude", "amt": 400, "day": 27, "from": "2027-06-27", "auto": false}], "debts": [{"id": "q0", "date": "2026-09-29", "app": "beforepay", "loan": "ln_beforepay", "amt": 119.49, "st": "", "note": ""}, {"id": "q1", "date": "2026-09-29", "app": "moneyspot", "loan": "ln_moneyspot1", "amt": 42.5, "st": "", "note": ""}, {"id": "q2", "date": "2026-09-29", "app": "moneyspot", "loan": "ln_moneyspot2", "amt": 116.71, "st": "", "note": ""}, {"id": "q3", "date": "2026-10-01", "app": "wagetap", "loan": "ln_wagetap", "amt": 295.07, "st": "", "note": ""}, {"id": "q4", "date": "2026-10-01", "app": "wagepay", "loan": "ln_wagepay", "amt": 159.69, "st": "", "note": ""}, {"id": "q5", "date": "2026-10-06", "app": "beforepay", "loan": "ln_beforepay", "amt": 119.49, "st": "", "note": ""}, {"id": "q6", "date": "2026-10-06", "app": "moneyspot", "loan": "ln_moneyspot1", "amt": 42.5, "st": "", "note": ""}, {"id": "q7", "date": "2026-10-06", "app": "moneyspot", "loan": "ln_moneyspot2", "amt": 106.71, "st": "", "note": ""}, {"id": "q8", "date": "2026-10-07", "app": "afterpay", "loan": "ln_afterpay", "amt": 137.5, "st": "", "note": ""}, {"id": "q9", "date": "2026-10-13", "app": "beforepay", "loan": "ln_beforepay", "amt": 119.49, "st": "", "note": ""}, {"id": "q10", "date": "2026-10-13", "app": "moneyspot", "loan": "ln_moneyspot1", "amt": 42.5, "st": "", "note": ""}, {"id": "q11", "date": "2026-10-13", "app": "moneyspot", "loan": "ln_moneyspot2", "amt": 102.2, "st": "", "note": ""}, {"id": "q12", "date": "2026-10-14", "app": "afterpay", "loan": "ln_afterpay", "amt": 50.0, "st": "", "note": ""}, {"id": "q13", "date": "2026-10-20", "app": "moneyspot", "loan": "ln_moneyspot1", "amt": 42.5, "st": "", "note": ""}, {"id": "q14", "date": "2026-10-21", "app": "afterpay", "loan": "ln_afterpay", "amt": 87.5, "st": "", "note": ""}, {"id": "q15", "date": "2026-10-27", "app": "moneyspot", "loan": "ln_moneyspot1", "amt": 42.5, "st": "", "note": ""}, {"id": "q16", "date": "2026-11-04", "app": "moneyspot", "loan": "ln_moneyspot1", "amt": 16.15, "st": "", "note": ""}, {"id": "q17", "date": "2026-11-04", "app": "afterpay", "loan": "ln_afterpay", "amt": 25.0, "st": "", "note": ""}], "lists": [{"id": "house", "nm": "House basics", "det": "Bins, small appliances, bedding, cables and chargers", "items": [{"id": "h0", "nm": "Bin", "amt": 10, "note": ""}, {"id": "h1", "nm": "Kitchen bin", "amt": 30, "note": "", "exact": 25}, {"id": "h2", "nm": "Garage bin", "amt": 40, "note": ""}, {"id": "h3", "nm": "Cigarette bin", "amt": 20, "note": ""}, {"id": "h4", "nm": "Rice cooker", "amt": 40, "note": "", "exact": 35}, {"id": "h5", "nm": "Toaster", "amt": 30, "note": "", "exact": 25}, {"id": "h6", "nm": "Kettle", "amt": 30, "note": "", "exact": 25}, {"id": "h7", "nm": "Pot", "amt": 20, "note": ""}, {"id": "h8", "nm": "Bed sheet", "amt": 30, "note": ""}, {"id": "h9", "nm": "Spare bed sheets", "amt": 30, "note": ""}, {"id": "h10", "nm": "Pillow case", "amt": 10, "note": ""}, {"id": "h11", "nm": "Spare pillow cases", "amt": 10, "note": ""}, {"id": "h12", "nm": "Bed protector sheet", "amt": 30, "note": "", "exact": 25}, {"id": "h13", "nm": "Pillows x2", "amt": 30, "note": ""}, {"id": "h14", "nm": "Blankets", "amt": 40, "note": ""}, {"id": "h15", "nm": "Extension cable x3", "amt": 50, "note": "", "exact": 45}, {"id": "h16", "nm": "Double adapter x2", "amt": 20, "note": "", "exact": 16}, {"id": "h17", "nm": "Multi adapter", "amt": 20, "note": ""}, {"id": "h18", "nm": "Apple charger x2", "amt": 60, "note": ""}, {"id": "h19", "nm": "Internet cable", "amt": 15, "note": ""}, {"id": "h20", "nm": "SD card reader", "amt": 20, "note": ""}, {"id": "h21", "nm": "Milk", "amt": 5, "note": "", "exact": 3}, {"id": "h22", "nm": "Bread", "amt": 5, "note": "", "exact": 4}, {"id": "h23", "nm": "Water", "amt": 5, "note": ""}]}, {"id": "kitchen", "nm": "Kitchen and fridge", "det": "Microwave first, fridge second, then the rest", "items": [{"id": "k0", "nm": "Microwave", "amt": 100, "note": "First"}, {"id": "k1", "nm": "Fridge", "amt": 600, "note": "Second"}, {"id": "k2", "nm": "Bakeware", "amt": 40, "note": "After the fridge"}, {"id": "k3", "nm": "Pans", "amt": 60, "note": "After the fridge"}, {"id": "k4", "nm": "Airfryer", "amt": 80, "note": "After the fridge"}, {"id": "k5", "nm": "Glasses repaired", "amt": 80, "note": ""}, {"id": "k6", "nm": "Scissors, exacto knife, sticky notes", "amt": 30, "note": ""}]}, {"id": "clothes", "nm": "Clothes and shoes", "det": "", "items": [{"id": "c0", "nm": "Work shoes, spare and new", "amt": 120, "note": ""}, {"id": "c1", "nm": "Converse shoes", "amt": 110, "note": ""}, {"id": "c2", "nm": "Casual shoes", "amt": 60, "note": ""}, {"id": "c3", "nm": "Calibre pants hook", "amt": 10, "note": ""}, {"id": "c4", "nm": "Shirts", "amt": 60, "note": ""}]}, {"id": "cutlery", "nm": "Cutlery and plates", "det": "Cutlery first, plates last", "items": [{"id": "u0", "nm": "Knives, forks and spoons", "amt": 30, "note": ""}, {"id": "u1", "nm": "Plates", "amt": 30, "note": "Last", "exact": 25}]}, {"id": "furn", "nm": "Furniture, security and cat", "det": "", "items": [{"id": "f0", "nm": "Dresser", "amt": 150, "note": ""}, {"id": "f1", "nm": "Pantry cupboard", "amt": 120, "note": ""}, {"id": "f2", "nm": "Rugs", "amt": 80, "note": ""}, {"id": "f3", "nm": "Interior door handles", "amt": 80, "note": ""}, {"id": "f4", "nm": "Books", "amt": 50, "note": ""}, {"id": "f5", "nm": "Photo frame", "amt": 15, "note": ""}, {"id": "f6", "nm": "Safe", "amt": 80, "note": ""}, {"id": "f7", "nm": "Security camera", "amt": 60, "note": ""}, {"id": "f8", "nm": "Pedestal fan", "amt": 50, "note": "", "exact": 45}, {"id": "f9", "nm": "Gardening gloves", "amt": 10, "note": ""}, {"id": "f10", "nm": "Cat scratch house", "amt": 60, "note": ""}, {"id": "f11", "nm": "Cat carrier", "amt": 40, "note": ""}, {"id": "f12", "nm": "Pet shop toys", "amt": 30, "note": "", "exact": 25}, {"id": "f13", "nm": "Cat food and water bowl", "amt": 15, "note": ""}, {"id": "f14", "nm": "Flea collars", "amt": 15, "note": ""}, {"id": "f15", "nm": "Swag", "amt": 200, "note": ""}]}, {"id": "licence", "nm": "Licence", "det": "Queensland fees, exact", "items": [{"id": "l0", "nm": "Learner licence, 3 years", "amt": 90, "note": "QLD government fee", "exact": 80.15}, {"id": "l1", "nm": "Written road rules test", "amt": 30, "note": "QLD government fee", "exact": 29.7}, {"id": "l2", "nm": "Hazard perception test", "amt": 50, "note": "Must pass before booking the practical", "exact": 42.7}, {"id": "l3", "nm": "Practical driving test", "amt": 70, "note": "QLD government fee", "exact": 69.4}, {"id": "l4", "nm": "P2 licence, 3 years", "amt": 170, "note": "Straight to P2 at 28, no logbook, no 12 month wait", "exact": 163.25}, {"id": "l5", "nm": "Instructor car on test day", "amt": 200, "note": "No car of your own yet"}]}, {"id": "car", "nm": "Car or renovations", "det": "The on road costs apply either way", "items": [{"id": "r0", "nm": "The car, or the renovations", "amt": 5000, "note": "5,000 buys a car. If your friend gives you one, the 5,000 becomes the renovations"}, {"id": "r1", "nm": "Stamp duty", "amt": 150, "note": "3.00 per 100 on a 4 cylinder, charged on market value even for a gift"}, {"id": "r2", "nm": "Transfer fee", "amt": 40, "note": "", "exact": 33.65}, {"id": "r3", "nm": "Safety certificate", "amt": 110, "note": "", "exact": 102.7}, {"id": "r4", "nm": "Registration and CTP, 12 months", "amt": 870, "note": "", "exact": 864.5}]}, {"id": "toolsw", "nm": "Desk tools: wood", "det": "Bunnings and Total Tools, September 2026. You already own the welder, helmet, gloves and rods", "items": [{"id": "tw0", "nm": "Safety glasses", "amt": 5, "note": "Bunnings. Craftright Clear Safety Glasses", "exact": 2.89}, {"id": "tw1", "nm": "Earmuffs", "amt": 15, "note": "Bunnings. Craftright Ear Muffs", "exact": 11}, {"id": "tw2", "nm": "P2 dust mask or half-face respirator", "amt": 15, "note": "Bunnings. Bear Disposable P2 Respirator Dust Mask With Valve - 3 Pack", "exact": 11.5}, {"id": "tw4", "nm": "Drill + impact driver kit, 2 batteries", "amt": 100, "note": "Bunnings. Ozito PXC 18V Cordless Drill Driver Kit PXDDK-250C", "exact": 99.98}, {"id": "tw5", "nm": "Circular saw", "amt": 80, "note": "Bunnings. RYOBI 1500W 184mm Corded Circular Saw RCS1500-G", "exact": 79}, {"id": "tw6", "nm": "Random orbital sander", "amt": 50, "note": "Bunnings. Ozito 230W Random Orbital Sander (ROS-2000), corded", "exact": 49.98}, {"id": "tw8", "nm": "Danish oil or hard-wax oil", "amt": 70, "note": "Bunnings. Feast Watson 1L Timber Floor Wax Hard Wax Oil", "exact": 63.5}, {"id": "tw10", "nm": "Paint brushes 50mm x2 and lint-free rags", "amt": 20, "note": "Bunnings. 2 x Paint Partner 50mm Paint Brush (4.30 each) + Paint Partn", "exact": 18.59}, {"id": "tw11", "nm": "Pocket hole jig", "amt": 50, "note": "Either. Kreg Pocket Hole Jig 310 (I/N 0202873)", "exact": 43}, {"id": "tw13", "nm": "PVA wood glue", "amt": 15, "note": "Total Tools. TITEBOND 473mL Original Wood Glue TBD-1-473ML (SKU 113228)", "exact": 14.5}, {"id": "tw14", "nm": "F-clamps 600mm x2", "amt": 80, "note": "Either. Trojan 600 x 120mm F Clamp", "exact": 73.7}, {"id": "tw15", "nm": "Quick-grip one-handed bar clamps", "amt": 10, "note": "Bunnings. Craftright 300mm Quick Action Clamp Set - 2 Piece", "exact": 9.98}, {"id": "tw17", "nm": "Tape measure", "amt": 5, "note": "Bunnings. Craftright 8m Tape Measure", "exact": 2.98}, {"id": "tw18", "nm": "Combination square", "amt": 10, "note": "Bunnings. Craftright 300mm Combination Square", "exact": 9.98}, {"id": "tw19", "nm": "Speed square", "amt": 10, "note": "Bunnings. Trojan 180mm Rafter Square", "exact": 9.98}, {"id": "tw22", "nm": "Hand saw", "amt": 10, "note": "Bunnings. Craftright 500mm Hand Saw (7 TPI)", "exact": 6.98}, {"id": "tw23", "nm": "Sanding block + one pack of sheets", "amt": 10.0, "note": "Bunnings. UNi-PRO Cork Sanding Block (4.45) + Rocket Premium Sanding S"}, {"id": "tw24", "nm": "Carpenter pencils x3", "amt": 5, "note": "Bunnings. Bunnings Carpenters Pencil x3 (0.30 each) + Stanley 215mm Ma", "exact": 3.0}, {"id": "tw27", "nm": "Countersink bit set", "amt": 10, "note": "Bunnings. Craftright 3 Piece Countersink Bit Set", "exact": 6.91}, {"id": "twx0", "nm": "Sash clamps 1200mm x4", "amt": 200, "note": "Bunnings Craftright 49.98 each. The only clamp that spans a table top glue-up", "exact": 199.92}, {"id": "twx1", "nm": "Sanding discs 125mm, 80 to 240 grit", "amt": 40.0, "note": "Bunnings Craftright 10-packs. The sander comes with none"}, {"id": "twx2", "nm": "40 tooth 184mm saw blade", "amt": 30, "note": "Bunnings Full Boar. The 24T blade in the box tears hardwood", "exact": 24.85}, {"id": "twx3", "nm": "Clamp-on cutting guide 1270mm", "amt": 30, "note": "Bunnings Craftright. Straight cuts with a hand-held saw", "exact": 27.98}, {"id": "twx4", "nm": "Fine thread pocket screws 32mm + 38mm", "amt": 30, "note": "Kreg. Fine thread for hardwood, coarse splits it", "exact": 25.0}, {"id": "twx5", "nm": "Timber screws 8g x 50 and 10g x 75", "amt": 20.0, "note": "Bunnings Zenith"}, {"id": "twx6", "nm": "Rubber mallet", "amt": 10, "note": "Bunnings Craftright 450g", "exact": 7.98}, {"id": "twx7", "nm": "Oil stone 200mm", "amt": 15, "note": "Bunnings Craftright. Budget chisels arrive blunt", "exact": 10.48}, {"id": "twx8", "nm": "25mm chisel", "amt": 10, "note": "One chisel for glue squeeze-out and plugs", "exact": 9.0}, {"id": "twx9", "nm": "Driver bit set 10pc with holder", "amt": 10, "note": "Bunnings Craftright", "exact": 8.0}, {"id": "twx10", "nm": "Wood filler 250g", "amt": 15, "note": "Bunnings Timbermate", "exact": 10.29}, {"id": "twx11", "nm": "Nitrile gloves 50 pack", "amt": 15, "note": "Bunnings Jumbuck. Oil finish, glue, degreaser", "exact": 12.0}, {"id": "twx12", "nm": "Bearers, cauls, MDF assembly board, tape", "amt": 50, "note": "4 x 70x35 pine + 12mm MDF 1200x600. A flat bed for the glue-up", "exact": 45.0}, {"id": "twx13", "nm": "Extension lead 10m outdoor", "amt": 10, "note": "Bunnings Click. The saw, sander and grinder are corded", "exact": 9.9}, {"id": "twx14", "nm": "Steel wool, tack cloth, drop sheet", "amt": 15, "note": "Between coats of finish", "exact": 12.0}, {"id": "twx15", "nm": "Block plane", "amt": 15.0, "note": "Bunnings Craftright. Eases edges, trims proud ends"}, {"id": "twx16", "nm": "Belt sander 800W + belts", "amt": 100, "note": "Bunnings Ozito BSR-7000 84.90 + belts. Levels the glue-up; a 230W orbital takes hours", "exact": 96.9}]}, {"id": "toolsm", "nm": "Desk tools: metal", "det": "Angle grinder, welding jigs, steel bits, primer and paint", "items": [{"id": "tm0", "nm": "Welding magnets 25kg x4", "amt": 40, "note": "Bunnings. Bossweld 4kg Mini Multi-Angle Welding Magnet - 4 Pack", "exact": 37.84}, {"id": "tm1", "nm": "Locking welding C-clamps", "amt": 50, "note": "Bunnings. Trojan 280mm C Clamp Locking Pliers", "exact": 47.8}, {"id": "tm2", "nm": "Engineers square", "amt": 30, "note": "Total Tools. TTI 150mm Square Engineering Squareness 16 Microns TTIES150", "exact": 21}, {"id": "tm3", "nm": "Metal etch primer", "amt": 40, "note": "Bunnings. Dy-Mark 325g Grey MetalPro Etch Primer spray, 2 cans", "exact": 33.48}, {"id": "tm4", "nm": "Epoxy enamel topcoat, 4 cans", "amt": 70, "note": "Bunnings. Dulux 300g Metalshield Epoxy Enamel Spray Paint Flat Black, ", "exact": 67.6}, {"id": "tm5", "nm": "Wax and grease remover", "amt": 20, "note": "Bunnings. Diggers 1L Wax And Grease Remover", "exact": 19.75}, {"id": "tm6", "nm": "Scotch-brite pads and 240 grit emery", "amt": 15, "note": "Bunnings. Scotch-Brite 155 x 100mm Heavy Duty Scourer Pad 6 Pack (6.19", "exact": 14.59}, {"id": "tm7", "nm": "Angle grinder", "amt": 50, "note": "Bunnings. Ozito 125mm 1200W Angle Grinder Kit with 3 grinding discs (I", "exact": 49.9}, {"id": "tm8", "nm": "Metal cutting discs 125mm x 1mm", "amt": 15, "note": "Bunnings. Full Boar 125mm x 1.0 x 22.23mm Inox Cutting Disc - 12 Pack ", "exact": 10.6}, {"id": "tm10", "nm": "Flap discs 125mm", "amt": 40, "note": "Total Tools. Detroit 125mm 60-Grit Zirconia Angled Flap Disc (DFD12560) x", "exact": 31.8}, {"id": "tm16", "nm": "Soapstone or paint marker for steel", "amt": 10, "note": "Either. Empire White Liquid Paint Marker (p0646559)", "exact": 5.99}, {"id": "tm17", "nm": "Wire cup brush for 125mm angle grinder", "amt": 5, "note": "Bunnings. Craftright 75mm Twistknot Cup Brush With Skirt"}, {"id": "tm18", "nm": "Flat bastard file 250mm", "amt": 15, "note": "Bunnings. Hart 5 Piece 200mm File Set", "exact": 12.0}, {"id": "tm20", "nm": "Chipping hammer and hand wire brush", "amt": 5, "note": "Bunnings. Bossweld Chipping Hammer/Brush Combo", "exact": 3.4}, {"id": "tm22", "nm": "Step drill bit", "amt": 15, "note": "Bunnings. Craftright 3pc Step Drill Set (4-32mm, 4-20mm, 4-12mm, titan", "exact": 14.98}, {"id": "tm23", "nm": "Automatic centre punch", "amt": 15, "note": "Bunnings. Trojan 125mm Auto Centre Punch", "exact": 11.9}, {"id": "tm24", "nm": "Cutting and tapping fluid", "amt": 20, "note": "Bunnings. Sutton Tools 250ml Cutting Fluid", "exact": 15.25}, {"id": "tmx0", "nm": "HSS TiN drill bit set 1-13mm, 25pc", "amt": 40, "note": "Total Tools DETROIT. One set for wood and mild steel", "exact": 39.95}, {"id": "tmx1", "nm": "Adjustable levelling feet x4", "amt": 40, "note": "M10 foot + weld nut. A four leg steel frame rocks on a kitchen floor without them", "exact": 37.0}, {"id": "tmx2", "nm": "Grinding face shield", "amt": 30, "note": "The welding helmet covers the arc only. Grinding throws sparks and bristles", "exact": 25.0}, {"id": "tmx3", "nm": "Half-face respirator, A1P2 cartridges", "amt": 50, "note": "Etch primer is phosphoric acid and solvent. A P2 dust mask does not stop vapour", "exact": 49.0}, {"id": "tmx4", "nm": "Fire extinguisher 1kg dry powder", "amt": 20, "note": "Bunnings FirePro. Stick welding drops 1000 C slag in a home garage", "exact": 19.0}, {"id": "tmx5", "nm": "Steel sawhorses, pair", "amt": 60, "note": "Cutting, tacking and welding surface. Serves the timber work too", "exact": 54.0}, {"id": "tmx6", "nm": "Spirit level 600mm", "amt": 20, "note": "Bunnings Craftright. To set the tacked frame and the feet", "exact": 15.48}, {"id": "tmx7", "nm": "Ball pein hammer 450g", "amt": 15, "note": "Pulls a tacked frame square on the long diagonal", "exact": 12.0}, {"id": "tmx8", "nm": "M8 x 40 coach screws + washers x8", "amt": 15, "note": "Fix the top through slotted holes so it can move with the seasons", "exact": 12.0}, {"id": "tmx9", "nm": "Grinding work gloves", "amt": 15, "note": "Bunnings Craftright nitrile 10 pack. Gauntlets are too clumsy for a grinder", "exact": 13.0}, {"id": "tmx10", "nm": "Masking tape + lint-free rags", "amt": 10.0, "note": "Mask the feet threads and top holes before paint"}]}, {"id": "desk", "nm": "Desk and kitchen table", "det": "", "items": [{"id": "d0", "nm": "Steel tube, timber top, hardware", "amt": 3000, "note": "Welded 40x40 RHS frame, solid timber top. Doubles as the kitchen table. Buy black tube from a steel merchant, not galvanised from Bunnings"}]}, {"id": "chair", "nm": "Computer chair", "det": "", "items": [{"id": "ch0", "nm": "Computer chair", "amt": 150, "note": ""}]}, {"id": "computer", "nm": "Computer", "det": "", "items": [{"id": "pc0", "nm": "All the parts, bought together", "amt": 10000, "note": ""}], "milestone": true}, {"id": "bookshelf", "nm": "Bookshelf", "det": "", "items": [{"id": "bs0", "nm": "Bookshelf", "amt": 2000, "note": ""}]}, {"id": "bed", "nm": "Bed", "det": "", "items": [{"id": "bd0", "nm": "Bed", "amt": 5000, "note": "Replaces the one you have"}]}, {"id": "ute", "nm": "Ute or second car", "det": "", "items": [{"id": "ut0", "nm": "Ute, or a second car", "amt": 5000, "note": "A second car instead if your friend comes through"}]}, {"id": "trailer", "nm": "Trailer", "det": "", "items": [{"id": "tl0", "nm": "Trailer", "amt": 10000, "note": ""}]}, {"id": "washer", "nm": "Washing machine", "det": "", "items": [{"id": "wm0", "nm": "Washing machine", "amt": 450, "note": "A laundromat until then is about 24.00 a week"}]}, {"id": "camping", "nm": "Camping gear", "det": "", "items": [{"id": "cp0", "nm": "Tent", "amt": 120, "note": ""}, {"id": "cp1", "nm": "Gazebo", "amt": 150, "note": ""}, {"id": "cp2", "nm": "Fishing rod", "amt": 60, "note": ""}, {"id": "cp3", "nm": "Sleeping bag", "amt": 50, "note": ""}]}, {"id": "laptop", "nm": "Laptop", "det": "", "items": [{"id": "lp0", "nm": "Laptop", "amt": 5000, "note": ""}]}, {"id": "tablet", "nm": "Tablet", "det": "", "items": [{"id": "tb0", "nm": "Tablet", "amt": 4000, "note": ""}]}, {"id": "consoles", "nm": "Consoles", "det": "Wii, xbox, playstation, nintendo, gameboy, steam deck", "items": [{"id": "cs0", "nm": "Every brand, every generation, and the accessories", "amt": 30000, "note": ""}]}, {"id": "couches", "nm": "Couches", "det": "", "items": [{"id": "co0", "nm": "Couches", "amt": 600, "note": ""}]}, {"id": "tv", "nm": "Television", "det": "", "items": [{"id": "tv0", "nm": "Television", "amt": 4000, "note": "Last, after the consoles"}]}, {"id": "optional", "nm": "Optional tools", "det": "Drag one into the tools list if you want it", "items": [{"id": "opt0", "nm": "Wet and dry vacuum 12L", "amt": 50, "note": "Bunnings Ozito. Hardwood dust is the health risk of this build; the sander bag catches half", "exact": 49.98}, {"id": "opt1", "nm": "Metal cut-off saw 355mm + spare disc", "amt": 180, "note": "Bunnings Ozito MCS-2355. Not needed for one frame: the grinder and engineers square get within 1 degree. Buys repeatable cuts if you build more", "exact": 178.45}, {"id": "opt2", "nm": "Bench vice 100mm", "amt": 40.0, "note": "Bunnings Craftright. Useful, not needed; the sawhorses and locking clamps hold the tube"}], "counted": false}], "log": [], "balance": 242.94, "paid": {"2026-09-24": {"w0": true, "share": true, "m2": true}}, "loans": [{"id": "ln_beforepay", "app": "beforepay", "fee": 5}, {"id": "ln_moneyspot1", "app": "moneyspot", "fee": 5}, {"id": "ln_moneyspot2", "app": "moneyspot", "fee": 5}, {"id": "ln_wagetap", "app": "wagetap", "fee": 5}, {"id": "ln_wagepay", "app": "wagepay", "fee": 5}, {"id": "ln_afterpay", "app": "afterpay", "fee": 5}], "autoSet": true, "appPresets": {"beforepay": {"nm": "beforepay", "count": 4, "every": 7, "fee": 5, "pct": 0, "fixed": 0, "bank": true, "firstNow": false}, "wagetap": {"nm": "wagetap", "count": 4, "every": 7, "fee": 5, "pct": 0, "fixed": 0, "bank": true, "firstNow": false}, "wagepay": {"nm": "wagepay", "count": 4, "every": 7, "fee": 5, "pct": 0, "fixed": 0, "bank": true, "firstNow": false}, "moneyspot": {"nm": "moneyspot", "count": 4, "every": 7, "fee": 5, "pct": 0, "fixed": 0, "bank": true, "firstNow": false}, "mypaynow": {"nm": "mypaynow", "count": 4, "every": 7, "fee": 5, "pct": 0, "fixed": 0, "bank": true, "firstNow": false}, "afterpay": {"nm": "afterpay", "count": 4, "every": 7, "fee": 5, "pct": 0, "fixed": 0, "bank": false, "firstNow": true}}, "namesV2": true};
+</script>
+<script>
+(function(){
+"use strict";
+/* ---------- helpers ---------- */
+var money=function(n){return (Math.round(n*100)/100).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});};
+var money0=function(n){return Math.round(n).toLocaleString("en-AU");};
+function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function uid(p){return (p||"i")+Math.random().toString(36).slice(2,8);}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function fromIso(s){if(!s)return null;var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function fmtD(d){return d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});}
+function fmtDY(d){return d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short",year:"numeric"});}
+function sameOrAfter(a,b){return a.getTime()>=b.getTime();}
+function num(v){var n=parseFloat(String(v).replace(/[^0-9.\-]/g,""));return isNaN(n)?0:Math.round(n*100)/100;}
+/* costs round UP so the plan carries a margin: under 20 to the next 5, under 1000 to the next 10, above that to the next 100 */
+function roundUp(x){if(x<=0)return 0;if(x<20)return Math.ceil(x/5)*5;if(x<1000)return Math.ceil(x/10)*10;return Math.ceil(x/100)*100;}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+var ICON_POWER='<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M4.6 4.6a5 5 0 1 0 6.8 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>';
+var ICON_GRIP='<svg width="12" height="18" viewBox="0 0 12 18" aria-hidden="true"><g fill="currentColor"><circle cx="3.5" cy="3" r="1.6"/><circle cx="8.5" cy="3" r="1.6"/><circle cx="3.5" cy="9" r="1.6"/><circle cx="8.5" cy="9" r="1.6"/><circle cx="3.5" cy="15" r="1.6"/><circle cx="8.5" cy="15" r="1.6"/></g></svg>';
+var ICON_LOCK='<svg width="11" height="12" viewBox="0 0 11 12" aria-hidden="true"><rect x="1" y="5" width="9" height="6.5" rx="1.5" fill="currentColor"/><path d="M3 5V3.5a2.5 2.5 0 0 1 5 0V5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+var ICON_UNLOCK='<svg width="11" height="12" viewBox="0 0 11 12" aria-hidden="true"><rect x="1" y="5" width="9" height="6.5" rx="1.5" fill="currentColor"/><path d="M3 5V3.5a2.5 2.5 0 0 1 5 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+var ICON_CHEV='<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* ---------- state ---------- */
+var D=clone(SEED); var db=null, saveTimer=null, editing=false, viewWeek=0;
+var openGroups={}; try{openGroups=JSON.parse(localStorage.getItem("tn_open")||"{}")||{};}catch(e){openGroups={};}
+function rememberOpen(){try{localStorage.setItem("tn_open",JSON.stringify(openGroups));}catch(e){}}
+function itemOn(x){return x.on!==false;}
+function listCounted(l){return l.counted!==false;}
+function listTotal(l){return l.items.reduce(function(a,x){return a+(itemOn(x)&&!x.done?x.amt:0);},0);}
+function listBought(l){return l.items.reduce(function(a,x){return a+(x.done?x.amt:0);},0);}
+
+/* ---------- money model ---------- */
+function activeMonthly(onDate){return D.monthly.filter(function(m){return itemOn(m)&&(!m.from||sameOrAfter(onDate,fromIso(m.from)));});}
+function weeklyOn(w,day){if(!itemOn(w))return false;if(w.from&&fromIso(w.from)&&day.getTime()<fromIso(w.from).getTime())return false;if(w.until&&fromIso(w.until)&&day.getTime()>fromIso(w.until).getTime())return false;return true;}
+function weeklyTotal(){return D.weekly.reduce(function(a,w){return a+(itemOn(w)?w.amt:0);},0);}
+function monthlyShare(onDate){return activeMonthly(onDate).reduce(function(a,m){return a+m.amt;},0)/4;}
+function billsIn(a,b){ // monthly bills whose day of month falls inside [a,b], once their from date has arrived
+  var out=[];D.monthly.forEach(function(m){if(!itemOn(m))return;var day=Math.max(1,Math.min(31,parseInt(m.day,10)||1));
+    var months=[[a.getFullYear(),a.getMonth()],[b.getFullYear(),b.getMonth()]],seen={};
+    months.forEach(function(ym){var k=ym[0]+"-"+ym[1];if(seen[k])return;seen[k]=1;var last=new Date(ym[0],ym[1]+1,0).getDate();var d=new Date(ym[0],ym[1],Math.min(day,last));
+      if(d.getTime()>=a.getTime()&&d.getTime()<=b.getTime()&&(!m.from||sameOrAfter(d,fromIso(m.from)))&&(!m.until||!fromIso(m.until)||d.getTime()<=fromIso(m.until).getTime()))out.push({m:m,date:d});});});
+  return out.sort(function(x,y){return x.date-y.date;});
+}
+var DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function paydayWeekday(){if(typeof D.settings.payDay==="number")return D.settings.payDay;var f=fromIso(D.settings.firstPayday)||new Date(2026,8,24);return f.getDay();}
+function currentPayday(today){var d=new Date(today.getFullYear(),today.getMonth(),today.getDate());var wd=paydayWeekday();while(d.getDay()!==wd)d=addDays(d,-1);return d;}
+
+/* loans: a loan groups its payment rows. Same app name twice = moneyspot 1, moneyspot 2 */
+function ensureLoans(){
+  if(!Array.isArray(D.loans))D.loans=[];
+  var byId={};D.loans.forEach(function(l){byId[l.id]=l;});
+  D.debts.forEach(function(p){
+    if(p.loan&&byId[p.loan])return;
+    var app=String(p.app||"").replace(/\s+[AB]$/,"").trim();
+    if(!app){p.loan=null;return;}
+    var l=null;D.loans.forEach(function(q){if(q.app.toLowerCase()===app.toLowerCase()&&!q._taken)l=q;});
+    if(!l){l={id:uid("ln"),app:app,fee:5};D.loans.push(l);byId[l.id]=l;}
+    p.loan=l.id;
+  });
+  renumber();
+}
+function renumber(){
+  var groups={};D.loans.forEach(function(l){var k=l.app.toLowerCase();(groups[k]=groups[k]||[]).push(l);});
+  Object.keys(groups).forEach(function(k){groups[k].forEach(function(l,i){l.n=groups[k].length>1?i+1:0;});});
+}
+var PRESET_DEFAULT={count:4,every:7,fee:5,pct:0,fixed:0,bank:true,firstNow:false};
+function presetKey(nm){return String(nm||"").trim().toLowerCase();}
+function ensurePresets(){
+  if(!D.appPresets||typeof D.appPresets!=="object")D.appPresets={};
+  ["beforepay","wagetap","wagepay","moneyspot","mypaynow","afterpay"].forEach(function(nm){if(!D.appPresets[nm]){var p=clone(PRESET_DEFAULT);p.nm=nm;if(nm==="afterpay"){p.bank=false;p.firstNow=true;}D.appPresets[nm]=p;}});
+  D.loans.forEach(function(l){var k=presetKey(l.app);if(k&&!D.appPresets[k]){var q=clone(PRESET_DEFAULT);q.nm=l.app;q.fee=num(l.fee);D.appPresets[k]=q;}});
+}
+function presetFor(nm){ensurePresets();return D.appPresets[presetKey(nm)]||null;}
+function presetRepay(p,amount){return num(amount*(1+num(p.pct)/100)+num(p.fixed));}
+function loanById(id){if(!id)return null;for(var i=0;i<D.loans.length;i++)if(D.loans[i].id===id)return D.loans[i];return null;}
+function loanName(l){return l?(l.app+(l.n?" "+l.n:"")):"";}
+function pullName(x){var l=loanById(x.loan);return l?loanName(l):(x.app||"");}
+function addLoan(app,total,count,every,first,fee){
+  app=(app||"New app").trim();count=Math.max(1,parseInt(count,10)||1);every=parseInt(every,10)||7;
+  var l={id:uid("ln"),app:app,fee:num(fee)};D.loans.push(l);renumber();addLoan.last=l;
+  var each=Math.floor(total/count*100)/100,acc=0,d=fromIso(first)||new Date();
+  for(var k=0;k<count;k++){var amt=(k===count-1)?num(total-acc):each;acc=num(acc+amt);
+    D.debts.push({id:uid("p"),date:iso(addDays(d,k*every)),app:app,loan:l.id,amt:amt,st:"",note:""});}
+}
+
+/* THE SIMULATION. Day by day from today. A pull happens on its date; if the balance cannot cover it, it bounces:
+   it retries a week later with the fee, and every later pull of the same loan slides a week. Nothing here is a choice. */
+var SIM=null;
+function cents(v){return Math.round(v*100);}
+function simulate(opts){
+  opts=opts||{};var withdrawFirst=!!opts.withdrawFirst;
+  var today=new Date();today.setHours(0,0,0,0);
+  var pay=num(D.settings.pay),floor=num(D.settings.floor),spend=num(D.settings.spending);
+  var bal=num(D.balance);
+  var p0=currentPayday(today),end0=addDays(p0,6);
+  if(!D.paidPulls||typeof D.paidPulls!=="object")D.paidPulls={};
+  if(!D.bouncePulls||typeof D.bouncePulls!=="object")D.bouncePulls={};
+  var pulls=D.debts.map(function(p){var d=fromIso(p.date);return d?{id:p.id,date:d,orig:d,app:p.app,loan:p.loan,amt:num(p.amt),ticked:!!D.paidPulls[p.id],manual:D.bouncePulls[p.id]?"bounce":"",note:p.note||"",retryOf:null,src:p,st:null}:null;}).filter(Boolean);
+  (function(){var by={};pulls.forEach(function(x){var k=x.loan||("app:"+x.app);(by[k]=by[k]||[]).push(x);});
+    Object.keys(by).forEach(function(k){var arr=by[k].slice().sort(function(a,b){return a.orig-b.orig;});arr.forEach(function(x,i){x.n=i+1;x.of=arr.length;});});})();
+  // history, one pull at a time in date order: a bounce you set slides the later pulls of that loan and makes its retry
+  // (the retry can be in the past too, and can be set as bounced itself); the rest went through if ticked, else it is still owed
+  for(;;){
+    var past=pulls.filter(function(x){return x.st==null&&x.date.getTime()<today.getTime();}).sort(function(a,b){return a.date-b.date;});
+    if(!past.length)break;
+    var hx=past[0];
+    if(hx.manual==="bounce"){hx.st="bounce";applyBounce(hx,hx.date);}
+    else{hx.st="paid";if(!hx.ticked)bal=num(bal-hx.amt);}
+  }
+  function applyBounce(x,onDay){
+    var l=loanById(x.loan),fee=l?num(l.fee):5;
+    pulls.forEach(function(y){if(y!==x&&y.loan&&y.loan===x.loan&&y.st==null&&y.date.getTime()>onDay.getTime())y.date=addDays(y.date,7);});
+    var rid=x.id+"~r";
+    pulls.push({id:rid,date:addDays(onDay,7),orig:null,app:x.app,loan:x.loan,amt:num(x.amt+fee),ticked:!!D.paidPulls[rid],manual:D.bouncePulls[rid]?"bounce":"",note:"Retry of "+fmtD(onDay)+" with the "+money(fee)+" fee",retryOf:x,src:null,st:null,n:x.n,of:x.of});
+  }
+  // what you pay by hand and have not ticked, this pay week and the ones before it. Left in the bank, the apps pull first
+  // and it comes out at the end of this pay week. withdrawFirst takes it out now instead.
+  var first=fromIso(D.settings.firstPayday)||p0,scanFrom=addDays(p0,-7*52);if(first.getTime()>scanFrom.getTime())scanFrom=first;
+  var owed=0;
+  for(var pw=scanFrom;pw.getTime()<=p0.getTime();pw=addDays(pw,7)){
+    D.weekly.forEach(function(w){if(weeklyOn(w,pw)&&!weeklyPaid(w,pw,p0))owed+=w.amt;});
+    billsIn(pw,addDays(pw,6)).forEach(function(x){if(!linePaid(x.m,pw,p0))owed+=x.m.amt;});
+  }
+  var owedPending=owed,endWeekBal=null;
+  if(withdrawFirst){bal=num(bal-owed);owedPending=0;}
+  var queue=D.lists.filter(function(l){return listCounted(l)&&listTotal(l)>0;}),qi=0,reached={},rows=[],weekRow=null;
+  function reserve(from,to){var s=owedPending;pulls.forEach(function(y){if(y.st==null&&!y.ticked&&y.date.getTime()>=from.getTime()&&y.date.getTime()<=to.getTime())s+=y.amt;});return s;}
+  function tryBuys(day,to){var res=reserve(day,to);
+    while(qi<queue.length){var c=listTotal(queue[qi]);if(cents(bal-floor-res)>=cents(c)){bal=num(bal-c);if(weekRow){weekRow.buys+=c;weekRow.names.push(queue[qi].nm);}reached[queue[qi].id]=new Date(day);qi++;}else break;}}
+  // lists affordable right now, after this week's pulls are reserved
+  tryBuys(today,end0);
+  var day=new Date(today),last=addDays(p0,520*7),stopAt=null;
+  while(day.getTime()<=last.getTime()){
+    var isPayday=day.getTime()>p0.getTime()&&Math.round((day.getTime()-p0.getTime())/864e5)%7===0;
+    if(isPayday){
+      bal=num(bal+pay);weekRow={date:new Date(day),end:addDays(day,6),inn:pay,out:0,buys:0,names:[],start:bal,bal:bal,bounces:[],spend:0};rows.push(weekRow);
+      D.weekly.forEach(function(w){if(weeklyOn(w,day)){bal=num(bal-w.amt);weekRow.out+=w.amt;}});
+      billsIn(day,addDays(day,6)).forEach(function(x){bal=num(bal-x.m.amt);weekRow.out+=x.m.amt;});
+      if(cents(bal-floor-reserve(day,addDays(day,6)))>=cents(spend)){bal=num(bal-spend);weekRow.out+=spend;weekRow.spend=spend;}
+      tryBuys(day,addDays(day,6));
+    }
+    var todays=pulls.filter(function(x){return x.st==null&&x.date.getTime()===day.getTime();});
+    todays.forEach(function(x){
+      var st=x.ticked?"paid":x.manual==="bounce"?"bounce":(cents(bal)>=cents(x.amt)?"paid":"bounce");
+      x.st=st;
+      if(st==="paid"){if(!x.ticked){bal=num(bal-x.amt);if(weekRow)weekRow.out+=x.amt;}}
+      else{applyBounce(x,day);if(weekRow)weekRow.bounces.push(x);}
+    });
+    if(day.getTime()===end0.getTime()){endWeekBal=bal;if(owedPending){bal=num(bal-owedPending);owedPending=0;}}
+    if(weekRow)weekRow.bal=bal;
+    if(!stopAt&&qi>=queue.length&&rows.length>=12&&!pulls.some(function(x){return x.st==null;}))stopAt=day;
+    if(stopAt&&day.getTime()>=addDays(stopAt,7).getTime())break;
+    day=addDays(day,1);
+  }
+  // anything never reached stays st null
+  pulls.forEach(function(x){if(x.st==null)x.st="paid";});
+  pulls.sort(function(a,b){return a.date-b.date;});
+  var out={pulls:pulls,rows:rows,reached:reached,p0:p0,end0:end0,today:today,owed:owed,endWeekBal:endWeekBal==null?bal:endWeekBal,withdrawFirst:withdrawFirst};
+  if(!withdrawFirst)SIM=out;
+  return out;
+}
+function project(){return simulate();}
+function pullsIn(a,b){return SIM.pulls.filter(function(x){return x.date.getTime()>=a.getTime()&&x.date.getTime()<=b.getTime();}).sort(function(x,y){var bx=x.st==="bounce"?0:1,by=y.st==="bounce"?0:1;return bx!==by?bx-by:x.date-y.date;});}
+
+/* ---------- render: NOW ---------- */
+var balInput=document.getElementById("bal");
+function weekKey(p){return iso(p);}
+/* pay landed for a week: the pay joins the balance once, and the balance before it is kept for the floor streak */
+function paidAmt(x){return x.paidAmt!=null?num(x.paidAmt):num(x.amt);}
+function setPaidAmt(x,v){var old=paidAmt(x);v=num(v);D.balance=num(D.balance-(v-old));x.paidAmt=v;
+  for(var k=D.log.length-1;k>=0;k--){if(D.log[k].ref==="item:"+x.id){D.log[k].amt=-v;break;}}balInput.value=money(D.balance);}
+function paidBox(x,cls){var a=el("input","ed n paid "+(cls||""));a.value=money(paidAmt(x));a.inputMode="decimal";a.title="What it really cost. Changes the balance by the difference";a.setAttribute("aria-label","Paid");a.addEventListener("change",function(){setPaidAmt(x,a.value);save();renderAll();});return a;}
+function payLanded(key,addIt){
+  if(!D.payIn)D.payIn={};if(!D.weekEnd)D.weekEnd={};
+  D.weekEnd[key]=num(D.balance);
+  if(addIt){var pay=num(D.settings.pay);D.balance=num(D.balance+pay);D.log.push({amt:pay,dir:1,note:"Pay",at:Date.now(),ref:"pay:"+key});}
+  D.payIn[key]=true;balInput.value=money(D.balance);save();renderAll();
+}
+/* a tick means the money left the bank: the balance drops and the log gets a line. The untick finds that line and puts the money back. */
+function moveOnTick(checked,amt,note,ref){
+  if(!D.log)D.log=[];amt=num(amt);
+  if(checked){D.balance=num(D.balance-amt);D.log.push({amt:-amt,dir:-1,note:note,at:Date.now(),ref:ref});}
+  else{var i=-1;for(var k=D.log.length-1;k>=0;k--){if(D.log[k].ref===ref){i=k;break;}}
+    if(i>-1){D.balance=num(D.balance-D.log[i].amt);D.log.splice(i,1);}}
+  balInput.value=money(D.balance);
+}
+/* a weekly line or a bill counts as paid when you ticked it, or when its week has ended, it is set to assume, and you did not untick it */
+function linePaid(x,pW,ref){var pm=(D.paid&&D.paid[weekKey(pW)])||{};if(pm[x.id]===true)return true;if(pm[x.id]===false)return false;return !!x.auto&&pW.getTime()<ref.getTime();}
+var weeklyPaid=linePaid;
+/* every obligation of one pay week: weekly costs, bills on their dates, pulls the forecast says will clear.
+   paid = ticked by hand, or assumed once the week ended. ticked = by hand only. */
+function weekItems(pW,ref){
+  var end=addDays(pW,6),k=weekKey(pW),pm=(D.paid&&D.paid[k])||{},out=[];
+  D.weekly.forEach(function(w){if(weeklyOn(w,pW))out.push({kind:"weekly",id:w.id,nm:w.nm,amt:w.amt,week:pW,date:pW,paid:linePaid(w,pW,ref),ticked:pm[w.id]===true});});
+  billsIn(pW,end).forEach(function(x){out.push({kind:"bill",id:x.m.id,nm:x.m.nm,amt:x.m.amt,week:pW,date:x.date,paid:linePaid(x.m,pW,ref),ticked:pm[x.m.id]===true});});
+  var tdy=SIM?SIM.today:new Date();
+  pullsIn(pW,end).forEach(function(x){if(x.st!=="bounce")out.push({kind:"pull",id:x.id,nm:pullName(x)+(x.of?" "+x.n+"/"+x.of:""),amt:x.amt,week:pW,date:x.date,pull:x,paid:!!D.paidPulls[x.id]||(x.date.getTime()>=tdy.getTime()&&pW.getTime()<ref.getTime()),ticked:!!D.paidPulls[x.id]});});
+  return out;
+}
+function unticked(pW,ref){return weekItems(pW,ref).filter(function(o){return !o.paid;});}
+function renderNow(){
+  var floor=num(D.settings.floor),pay=num(D.settings.pay);
+  var today=new Date();today.setHours(0,0,0,0);
+  var nowP=currentPayday(today),p0=addDays(nowP,viewWeek*7),end=addDays(p0,6);
+  var SA=viewWeek===0?simulate({withdrawFirst:true}):null;
+  simulate();
+  var P=SIM;
+  if(!D.paid)D.paid={};
+  var key=weekKey(p0),paid=D.paid[key]||(D.paid[key]={});
+  document.getElementById("weekrange").textContent=fmtD(p0)+" \u2013 "+fmtD(end);
+  document.getElementById("weektitle").textContent=viewWeek===0?"This pay week":viewWeek<0?"Past pay week":"Pay week in "+viewWeek+(viewWeek===1?" week":" weeks");
+  document.getElementById("wk-home").hidden=viewWeek===0;
+
+  // overdue: everything unticked from earlier weeks, stacked by item
+  var first=fromIso(D.settings.firstPayday)||nowP, scanFrom=addDays(p0,-7*52); if(first.getTime()>scanFrom.getTime())scanFrom=first;
+  var stacks={},order=[];
+  for(var w=scanFrom; w.getTime()<nowP.getTime(); w=addDays(w,7)){
+    unticked(w,nowP).forEach(function(o){var sk=o.kind==="pull"?"pull:"+o.id:o.kind+":"+o.id;if(!stacks[sk]){stacks[sk]={kind:o.kind,id:o.id,nm:o.nm,amt:0,weeks:[],dates:[],pull:o.pull};order.push(sk);}stacks[sk].amt+=o.amt;stacks[sk].weeks.push(o.week);stacks[sk].dates.push(o.date);});
+  }
+  var overdue=order.map(function(k){return stacks[k];});
+  var overdueSum=overdue.reduce(function(a,s){return a+s.amt;},0);
+
+  var ul=document.getElementById("thisweek");ul.innerHTML="";
+  var still=0;
+  overdue.forEach(function(s){
+    var li=el("li","overdue");
+    var d=s.dates[s.dates.length-1];li.appendChild(el("span","when-chip","<b>"+d.getDate()+"</b>"+d.toLocaleDateString("en-AU",{month:"short"})));
+    var tk=el("input","tick");tk.type="checkbox";tk.style.margin="0";tk.setAttribute("aria-label","Paid");
+    tk.addEventListener("change",function(){
+      if(s.kind==="pull"){if(tk.checked)D.paidPulls[s.id]=true;else delete D.paidPulls[s.id];moveOnTick(tk.checked,s.amt,s.nm,"pull:"+s.id);}
+      else{s.weeks.forEach(function(wk){var kk=weekKey(wk);D.paid[kk]=D.paid[kk]||{};if(tk.checked)D.paid[kk][s.id]=true;else D.paid[kk][s.id]=false;});
+        moveOnTick(tk.checked,s.amt,s.nm+(s.weeks.length>1?" ×"+s.weeks.length:""),"stack:"+s.kind+":"+s.id+":"+s.weeks.map(weekKey).join("+"));}
+      save();renderAll();
+    });
+    li.appendChild(tk);
+    var who=el("div","who");var n=s.weeks.length;
+    who.appendChild(el("div","nm",esc(s.nm)+(n>1?" <span class=\"mult\">\u00d7"+n+"</span>":"")+'<span class="tag t-bounce">unpaid</span>'));
+    who.appendChild(el("div","sub","From "+s.dates.map(fmtD).join(", ")+(n>1?". Ticking pays all "+n+"." :"")));
+    li.appendChild(who);li.appendChild(el("span","amt",money(s.amt)));
+    ul.appendChild(li);still+=s.amt;
+  });
+
+  // this week's own lines
+  function payLine(id,name,sub,amt,onAmt,date,isPaid,assumed,obj){
+    var li=el("li",isPaid?"st-paid":"");
+    if(date)li.appendChild(el("span","when-chip","<b>"+date.getDate()+"</b>"+date.toLocaleDateString("en-AU",{month:"short"})));
+    var tk=el("input","tick");tk.type="checkbox";tk.checked=!!isPaid;tk.setAttribute("aria-label","Done this week");tk.style.margin="0";
+    tk.addEventListener("change",function(){if(tk.checked)paid[id]=true;else if(assumed)paid[id]=false;else delete paid[id];if(viewWeek>=0)moveOnTick(tk.checked,amt,name,"line:"+id+":"+key);save();renderAll();});
+    li.appendChild(tk);
+    var who=el("div","who");
+    if(editing&&obj){var nmIn=el("input","ed t");nmIn.value=name;nmIn.setAttribute("aria-label","Name");nmIn.addEventListener("change",function(){obj.nm=nmIn.value;save();renderAll();});who.appendChild(nmIn);}
+    else who.appendChild(el("div","nm",esc(name)));
+    if(sub)who.appendChild(el("div","sub",esc(sub)));li.appendChild(who);
+    if(editing&&onAmt){var a=el("input","ed n");a.value=money(amt);a.inputMode="decimal";a.setAttribute("aria-label",name);a.addEventListener("change",function(){onAmt(num(a.value));save();renderAll();});li.appendChild(a);}
+    else li.appendChild(el("span","amt",money(amt)));
+    if(!isPaid)still+=amt;
+    ul.appendChild(li);
+  }
+  var due=pullsIn(p0,end);
+  var wlines=D.weekly.filter(function(w){return weeklyOn(w,p0);}),blines=billsIn(p0,end);
+  function drawWeekly(w){var ip=weeklyPaid(w,p0,nowP),assumed=!!w.auto&&viewWeek<0;
+    if(editing)ul.appendChild(insLine("li",function(){D.weekly.splice(D.weekly.indexOf(w),0,newCost());save();renderAll();}));
+    payLine(w.id,w.nm,paid[w.id]===true?"Paid":ip?"Assumed paid, the week ended. Untick it if it did not go out":"Not paid yet",w.amt,function(v){w.amt=v;},p0,ip,assumed,w);}
+  function drawBill(x){var ip=linePaid(x.m,p0,nowP),assumed=!!x.m.auto&&viewWeek<0;
+    payLine(x.m.id,x.m.nm,paid[x.m.id]===true?"Paid":ip?"Assumed paid, the week ended. Untick it if it did not go out":"Bill, "+fmtD(x.date),x.m.amt,function(v){x.m.amt=v;},x.date,ip,assumed,x.m);}
+  function drawPulls(){if(due.length)ul.appendChild(el("li","sect","Comes out by itself, on its date"));due.forEach(function(x){ul.appendChild(pullRow(x,!editing));if(x.st!=="bounce"&&!D.paidPulls[x.id])still+=x.amt;});}
+  var vrow=null;P.rows.forEach(function(r){if(r.date.getTime()===p0.getTime())vrow=r;});
+  function drawSpend(){if(vrow&&vrow.spend>0){var li=el("li");li.appendChild(el("span","when-chip","<b>"+p0.getDate()+"</b>"+p0.toLocaleDateString("en-AU",{month:"short"})));var sp=el("span","tick");sp.style.visibility="hidden";sp.style.margin="0";li.appendChild(sp);var w2=el("div","who");w2.appendChild(el("div","nm","Spending money"));w2.appendChild(el("div","sub","The forecast takes it this week because the floor holds"));li.appendChild(w2);li.appendChild(el("span","amt",money(vrow.spend)));ul.appendChild(li);still+=vrow.spend;}}
+  if(editing){ // edit mode keeps every hand-paid line in its own order, with the insert lines
+    drawPulls();ul.appendChild(el("li","sect","You pay"));wlines.forEach(drawWeekly);ul.appendChild(insLine("li",function(){D.weekly.push(newCost());save();renderAll();}));blines.forEach(drawBill);
+  }else{ // the apps take their money before you get to the rest: paid lines, then the pulls, then what is still to pay
+    var wp=wlines.filter(function(w){return weeklyPaid(w,p0,nowP);}),wu=wlines.filter(function(w){return !weeklyPaid(w,p0,nowP);});
+    var bp=blines.filter(function(x){return linePaid(x.m,p0,nowP);}),bu=blines.filter(function(x){return !linePaid(x.m,p0,nowP);});
+    wp.forEach(drawWeekly);bp.forEach(drawBill);
+    drawPulls();
+    if(wu.length||bu.length||(vrow&&vrow.spend>0))ul.appendChild(el("li","sect","Still to pay"));
+    wu.forEach(drawWeekly);bu.forEach(drawBill);drawSpend();
+  }
+  D.lists.forEach(function(l){
+    if(!listCounted(l))return;var rd=P.reached[l.id];if(!rd||rd.getTime()>end.getTime())return;if(viewWeek!==0&&rd.getTime()<p0.getTime())return;
+    var on=l.items.filter(itemOn),open=on.filter(function(x){return !x.done;});
+    if(!on.length)return;if(!open.length&&rd.getTime()<p0.getTime())return;
+    // the header box buys the whole list; part-bought shows as the dash; untick puts every line back
+    var h=el("li");h.style.background="var(--accent-soft)";
+    var all=el("input","tick");all.type="checkbox";all.style.margin="0";all.disabled=!!l.locked;var sel=editing&&!l.locked;
+    if(sel){var sN=selCount(l);all.setAttribute("aria-label","Select every item in "+l.nm);all.checked=on.length>0&&sN>=on.length;all.indeterminate=sN>0&&sN<on.length;
+      all.addEventListener("change",function(){var to=all.checked;on.forEach(function(x){if(to)SEL[x.id]=true;else delete SEL[x.id];});renderAll();});}
+    else{all.setAttribute("aria-label","Bought all of "+l.nm);all.checked=open.length===0;all.indeterminate=open.length>0&&open.length<on.length;
+      all.addEventListener("change",function(){l.snap=l.items.map(function(x){return {id:x.id,done:!!x.done,on:itemOn(x)};});var to=all.checked;on.forEach(function(x){if(!!x.done!==to){x.done=to;moveOnTick(to,x.amt,x.nm,"item:"+x.id);}});save();renderAll();});}
+    h.appendChild(all);
+    var hw=el("div","who");hw.appendChild(el("div","nm","Buy now: "+esc(l.nm)));
+    hw.appendChild(el("div","sub",open.length?"The savings for this are in the bank"+(rd.getTime()<p0.getTime()?" since "+fmtD(rd):"")+". This box buys the whole list":"All bought. Untick to put it back"));
+    h.appendChild(hw);if(sel)h.appendChild(delBtn(l));h.appendChild(el("span","amt",money0(listTotal(l))));ul.appendChild(h);
+    on.forEach(function(x){var li=el("li",x.done&&!sel?"st-paid":"");var tk=el("input","tick");tk.type="checkbox";tk.style.margin="0";tk.disabled=!!l.locked;
+      if(sel){tk.checked=!!SEL[x.id];tk.setAttribute("aria-label","Select");tk.addEventListener("change",function(){if(tk.checked)SEL[x.id]=true;else delete SEL[x.id];renderAll();});}
+      else{tk.checked=!!x.done;tk.setAttribute("aria-label","Bought");tk.addEventListener("change",function(){x.done=tk.checked;moveOnTick(tk.checked,x.amt,x.nm,"item:"+x.id);save();renderAll();});}
+      li.appendChild(tk);
+      var w2=el("div","who");w2.appendChild(el("div","nm",esc(x.nm)));if(x.note)w2.appendChild(el("div","sub",esc(x.note)));li.appendChild(w2);
+      if(x.done&&!sel)li.appendChild(paidBox(x));else li.appendChild(el("span","amt",money0(x.amt)));ul.appendChild(li);if(!x.done)still+=x.amt;});
+  });
+  if(!ul.children.length)ul.appendChild(el("li","empty","Nothing here."));
+
+  // the card: a ledger. Money in (balance now + pays landed by this week), less what leaves before then, against what is unticked up to here.
+  var leaving=0;
+  for(var lw=nowP;lw.getTime()<p0.getTime();lw=addDays(lw,7)){
+    weekItems(lw,p0).forEach(function(o){if(o.ticked)return;leaving+=o.amt;});
+  }
+  P.rows.forEach(function(r){if(r.date.getTime()>nowP.getTime()&&r.date.getTime()<p0.getTime())leaving+=(r.spend||0)+(r.buys||0);});
+  if(viewWeek>0)D.lists.forEach(function(l){if(!listCounted(l))return;var rd=P.reached[l.id];if(rd&&rd.getTime()<p0.getTime())leaving+=listTotal(l);});
+  var gross=num(D.balance)+pay*Math.max(0,viewWeek)-leaving;
+  var lab=document.querySelector(".bal .lab");
+  lab.textContent=viewWeek>0?"In the bank on "+fmtD(p0)+", after pay":viewWeek<0?"In the bank now":"In the bank";
+  var np=document.getElementById("nextpull");
+  if(np){var nxt=P.pulls.filter(function(x){return !x.ticked&&x.date.getTime()>=today.getTime();}).sort(function(a,b){return a.date-b.date;})[0];
+    if(viewWeek===0&&nxt){var days=Math.round((nxt.date.getTime()-today.getTime())/864e5),when=days===0?"today":days===1?"tomorrow":"in "+days+" days";
+      var same=P.pulls.filter(function(x){return !x.ticked&&x.date.getTime()===nxt.date.getTime();}),tot=same.reduce(function(a,x){return a+x.amt;},0);
+      var bounced=same.filter(function(x){return x.st==="bounce";});
+      np.hidden=false;np.className="callout "+(bounced.length?"bad":"good");
+      np.innerHTML="<b>Next: "+same.map(function(x){return esc(pullName(x))+(x.of?" "+x.n+"/"+x.of:"")+" "+money(x.amt);}).join(", ")+"</b> "+(same.length>1?"("+money(tot)+") ":"")+"on "+fmtD(nxt.date)+", "+when+". "+money(num(D.balance))+" in the bank now. "+(bounced.length?bounced.map(function(x){return esc(pullName(x));}).join(", ")+(bounced.length===1?" bounces":" bounce")+" as things stand.":"Clears as things stand.");}
+    else np.hidden=true;}
+  var pr=document.getElementById("payrow");if(pr){if(!D.payIn)D.payIn={};pr.hidden=!(viewWeek===0&&!D.payIn[weekKey(nowP)]);document.getElementById("paybtn").textContent="Pay landed: +"+money(pay);}
+  balInput.readOnly=viewWeek!==0;balInput.style.borderBottomStyle=viewWeek!==0?"solid":"dashed";
+  if(document.activeElement!==balInput)balInput.value=money(gross);
+  document.getElementById("floorlab").textContent="$"+money0(floor);
+  var net=gross-still;
+  var pc=floor>0?Math.min(100,Math.max(0,net/floor*100)):100;
+  document.getElementById("floatpc").textContent=Math.round(pc)+"%";
+  document.getElementById("fbar").style.width=pc.toFixed(1)+"%";
+  document.getElementById("ftrack").classList.toggle("over",net>=floor);
+  document.getElementById("fnote").textContent=viewWeek<0?"This week is over. Untick anything here that did not go out.":
+    (viewWeek>0?money(num(D.balance))+" now + "+viewWeek+" pay"+(viewWeek>1?"s":"")+" of "+money(pay)+(leaving>0?" \u2212 "+money(leaving)+" that goes out before then":"")+". ":"")+money(still)+" unticked up to here"+(overdueSum>0?" ("+money(overdueSum)+" of it overdue)":"")+". Pay it all and "+money(net)+" is left"+(net>=floor?", floor held.":net<0?", short by "+money(-net)+".":", under the floor.");
+  var note=document.getElementById("weeknote");
+  if(viewWeek<0){note.className="callout";note.innerHTML="This week is over."+(still>0?" "+money(still)+" here is still unticked and counts as overdue in this week.":"");}
+  else if(net<0){note.className="callout bad";note.innerHTML="<b>Short by "+money(-net)+".</b> "+money(still)+" is unticked against "+money(gross)+". Cut the spending money first, then smokes, then the biggest payment bounces. Never open a new advance.";}
+  else if(net<floor){note.className="callout warn";note.innerHTML="<b>Covered.</b> "+money(net)+" left once everything here is ticked, under the "+money0(floor)+" floor.";}
+  else{note.className="callout good";note.innerHTML="<b>Covered, floor held.</b> "+money(net)+" left once everything here is ticked.";}
+  var bn=due.filter(function(x){return x.st==="bounce"&&x.date.getTime()>=today.getTime();});
+  if(bn.length){var fees=bn.reduce(function(a,x){var l=loanById(x.loan);return a+(l?num(l.fee):5);},0);note.innerHTML+=" "+bn.length+(bn.length===1?" payment bounces":" payments bounce")+" this week: "+money(fees)+" in fees, and each one retries a week later.";if(note.className==="callout good")note.className="callout warn";}
+  if(SA&&P.owed>0){
+    function pn(x){return pullName(x)+(x.of?" "+x.n+"/"+x.of:"");}
+    function feesOf(list){return list.reduce(function(a,x){var l=loanById(x.loan);return a+(l?num(l.fee):5);},0);}
+    var bA=SA.pulls.filter(function(x){return x.st==="bounce"&&x.date.getTime()>=today.getTime()&&x.date.getTime()>=p0.getTime()&&x.date.getTime()<=end.getTime();});
+    var nextPull=due.filter(function(x){return x.date.getTime()>=today.getTime()&&x.st!=="bounce"&&!D.paidPulls[x.id];}).map(function(x){return x.date;}).sort(function(x,y){return x-y;})[0];
+    if(bA.length!==bn.length||Math.abs(P.endWeekBal-P.owed)>0.005){
+      var s="<br><b>Timing.</b> "+money(P.owed)+" that you pay by hand is still in the bank. Leave it there and "+(bn.length?bn.map(pn).join(", ")+(bn.length===1?" bounces":" bounce"):"nothing bounces")+", with "+money(P.endWeekBal)+" left for it by "+fmtD(end)+".";
+      if(nextPull)s+=" Pull it out before "+fmtD(nextPull)+" and "+(bA.length?bA.map(pn).join(", ")+(bA.length===1?" bounces":" bounce")+" ("+money(feesOf(bA))+" in fees)":"nothing bounces")+".";
+      note.innerHTML+=s;if(note.className==="callout good")note.className="callout warn";
+    }
+  }
+}
+function pullRow(x,compact){
+  var today=SIM?SIM.today:new Date();
+  var future=x.date.getTime()>=today.getTime();
+  var li=el("li","st-"+x.st);
+  li.appendChild(el("span","when-chip","<b>"+x.date.getDate()+"</b>"+x.date.toLocaleDateString("en-AU",{month:"short"})));
+  var canTick=x.st!=="bounce";
+  if(compact){
+    if(canTick){var tk=el("input","tick");tk.type="checkbox";tk.checked=!!D.paidPulls[x.id];tk.style.margin="0";tk.setAttribute("aria-label","Paid");
+      tk.addEventListener("change",function(){if(tk.checked)D.paidPulls[x.id]=true;else delete D.paidPulls[x.id];moveOnTick(tk.checked,x.amt,pullName(x)+(x.of?" "+x.n+"/"+x.of:""),"pull:"+x.id);save();renderAll();});li.appendChild(tk);}
+    else{var sp=el("span","tick");sp.style.visibility="hidden";sp.style.margin="0";li.appendChild(sp);}
+  }
+  var who=el("div","who");
+  var label=x.st==="bounce"?(future?"bounces":"bounced"):(x.ticked?"paid":future?"due":"unpaid");
+  if(x.retryOf)label+=" \u00b7 retry";
+  if(editing&&!compact&&x.src){
+    var p=x.src,r=el("div","edrow");
+    var nm=el("input","ed t");nm.value=pullName(x);nm.setAttribute("aria-label","App");nm.addEventListener("change",function(){var l=loanById(p.loan);if(l){l.app=nm.value.replace(/\s+\d+$/,"");renumber();}else p.app=nm.value;save();renderAll();});
+    var dt=el("input","ed dt");dt.type="date";dt.value=p.date;dt.addEventListener("change",function(){p.date=dt.value;save();renderAll();});
+    r.appendChild(nm);r.appendChild(dt);who.appendChild(r);
+    var nt=el("input","ed t");nt.value=p.note||"";nt.placeholder="Note";nt.addEventListener("change",function(){p.note=nt.value;save();});who.appendChild(nt);
+    if(x.date.getTime()!==x.orig.getTime())who.appendChild(el("div","sub","Slid from "+fmtD(x.orig)+" by an earlier bounce"));
+    var acts=el("div","edrow");acts.style.marginTop="6px";
+    function mk(txt,title,fn){var b=el("button","mini",txt);b.type="button";b.title=title;b.addEventListener("click",function(){fn();save();renderAll();});acts.appendChild(b);}
+    mk("+1 week","Push this payment back a week, as the app lets you",function(){p.date=iso(addDays(fromIso(p.date)||new Date(),7));});
+    mk("+2 weeks","Push this payment back a fortnight",function(){p.date=iso(addDays(fromIso(p.date)||new Date(),14));});
+    mk("Split in 2","Split this payment: half stays on its date, half goes a week later. Press again on a half to split further",function(){
+      var half=Math.floor(p.amt/2*100)/100,rest=num(p.amt-half),d0=fromIso(p.date)||new Date();p.amt=half;
+      D.debts.splice(D.debts.indexOf(p)+1,0,{id:uid("p"),date:iso(addDays(d0,7)),app:p.app,loan:p.loan,amt:rest,st:"",note:"Split from "+fmtD(d0)});});
+    who.appendChild(acts);
+  }else{
+    var tag=el("button","tag t-"+(x.st==="bounce"?"bounce":label.indexOf("paid")===0?"paid":"due"),label);tag.type="button";
+    var cnt=x.of?'<span class="cnt">'+x.n+"/"+x.of+"</span>":"";
+    tag.setAttribute("aria-label","Tap to set this as bounced, tap again to let the forecast decide");
+    tag.addEventListener("click",function(){if(D.bouncePulls[x.id])delete D.bouncePulls[x.id];else{D.bouncePulls[x.id]=true;delete D.paidPulls[x.id];}save();renderAll();});
+    var nmEl=el("div","nm",esc(pullName(x))+cnt);nmEl.appendChild(tag);who.appendChild(nmEl);
+    var sub=x.note;
+    if(x.src&&x.date.getTime()!==x.orig.getTime())sub=(sub?sub+" \u00b7 ":"")+"slid from "+fmtD(x.orig);
+    if(x.manual==="bounce")sub=(sub?sub+" \u00b7 ":"")+"set by you";
+    if(sub)who.appendChild(el("div","sub",esc(sub)));
+  }
+  li.appendChild(who);
+  if(editing&&!compact&&x.src){var p2=x.src,a=el("input","ed n");a.value=money(p2.amt);a.inputMode="decimal";a.addEventListener("change",function(){p2.amt=num(a.value);save();renderAll();});li.appendChild(a);
+    var xb=el("button","x","\u00d7");xb.type="button";xb.setAttribute("aria-label","Delete");xb.addEventListener("click",function(){D.debts=D.debts.filter(function(q){return q!==p2;});save();renderAll();});li.appendChild(xb);}
+  else li.appendChild(el("span","amt",money(x.amt)));
+  return li;
+}
+var showAllLog=false;
+function logDir(e){return e.dir===-1||e.dir===1?e.dir:(e.amt<0?-1:1);}
+function renderLog(){
+  var ul=document.getElementById("loglist");ul.innerHTML="";
+  if(!D.log.length){ul.appendChild(el("li","empty","Nothing logged yet."));return;}
+  var cut=Date.now()-56*864e5,recent=D.log.filter(function(e){return showAllLog||(e.at||0)>=cut;}),old=D.log.filter(function(e){return !showAllLog&&(e.at||0)<cut;});
+  recent.slice().reverse().slice(0,showAllLog?1000:60).forEach(function(e){
+    var li=el("li");var d=new Date(e.at);
+    li.appendChild(el("span","lt",d.toLocaleDateString("en-AU",{day:"numeric",month:"short"})+"<br>"+d.toLocaleTimeString("en-AU",{hour:"numeric",minute:"2-digit"})));
+    if(editing){
+      var wrap=el("span","ln");var nIn=el("input","ed t");nIn.value=e.note||"";nIn.placeholder=logDir(e)<0?"Spent":"Came in";nIn.setAttribute("aria-label","Note");nIn.addEventListener("change",function(){e.note=nIn.value.trim();save();});wrap.appendChild(nIn);li.appendChild(wrap);
+      var aIn=el("input","ed n");aIn.value=money(Math.abs(e.amt));aIn.inputMode="decimal";aIn.setAttribute("aria-label","Amount");aIn.addEventListener("change",function(){var v=Math.abs(num(aIn.value)),na=logDir(e)*v;D.balance=num(D.balance-e.amt+na);e.amt=na;e.dir=logDir(e);balInput.value=money(D.balance);save();renderAll();});li.appendChild(aIn);
+      var dir=el("button","mini"+(logDir(e)<0?"":" on"),logDir(e)<0?"Spent":"Came in");dir.type="button";dir.title="Flip between spent and came in";dir.addEventListener("click",function(){D.balance=num(D.balance-2*e.amt);e.amt=-e.amt;e.dir=-logDir(e);balInput.value=money(D.balance);save();renderAll();});li.appendChild(dir);
+      var x=el("button","x","×");x.type="button";x.setAttribute("aria-label","Remove this entry");
+      x.addEventListener("click",function(){var i=D.log.indexOf(e);if(i<0)return;
+        if(e.loan&&loanById(e.loan)){var n=D.debts.filter(function(p){return p.loan===e.loan;}).length;if(confirm("Also remove the "+n+" repayments this advance made?")){D.debts=D.debts.filter(function(p){if(p.loan===e.loan){delete D.paidPulls[p.id];delete D.bouncePulls[p.id];return false;}return true;});D.loans=D.loans.filter(function(l){return l.id!==e.loan;});renumber();}}
+        D.log.splice(i,1);D.balance=num(D.balance-e.amt);balInput.value=money(D.balance);save();renderAll();});
+      li.appendChild(x);
+    }else{
+      li.appendChild(el("span","ln",esc(e.note||(logDir(e)<0?"Spent":"Came in"))));
+      li.appendChild(el("span","la "+(logDir(e)<0?"out":"in"),(logDir(e)<0?"−":"+")+money(Math.abs(e.amt))));
+    }
+    ul.appendChild(li);
+  });
+  if(old.length){var by={};old.forEach(function(e){var d=new Date(e.at||0),k=d.getFullYear()+"-"+d.getMonth();(by[k]=by[k]||{n:0,inn:0,out:0,d:d}).n++;if(e.amt<0)by[k].out+=-e.amt;else by[k].inn+=e.amt;});
+    Object.keys(by).sort().reverse().forEach(function(k){var g=by[k],li=el("li");li.appendChild(el("span","lt",g.d.toLocaleDateString("en-AU",{month:"short",year:"2-digit"})));li.appendChild(el("span","ln",g.n+" lines"));li.appendChild(el("span","la",(g.inn?"+"+money(g.inn):"")+(g.inn&&g.out?" / ":"")+(g.out?"\u2212"+money(g.out):"")));ul.appendChild(li);});}
+  if(old.length||showAllLog){var more=el("li","empty");var b=el("button","mini",showAllLog?"Fold the old months":"Show all "+D.log.length+" lines");b.type="button";b.addEventListener("click",function(){showAllLog=!showAllLog;renderLog();});more.appendChild(b);ul.appendChild(more);}
+}
+var logSrc="cash";
+function g(id){return document.getElementById(id);}
+function updateApplist(){var dl=g("applist");if(!dl)return;dl.innerHTML="";var seen={};D.loans.map(function(l){return l.app;}).concat(["beforepay","wagetap","wagepay","moneyspot","mypaynow","afterpay"]).forEach(function(nm){var k=String(nm).toLowerCase();if(seen[k])return;seen[k]=1;var o=el("button",null,esc(nm));o.type="button";o.addEventListener("click",function(){g("lg-app").value=nm;applyPreset(nm);closeAppMenu();});dl.appendChild(o);});}
+function applyPreset(nm){var p=presetFor(nm);if(!p)return;g("lg-count").value=p.count;g("lg-every").value=p.every;g("lg-fee").value=money(num(p.fee));lgBank=!!p.bank;lgFirstNow=!!p.firstNow;
+  var d=new Date();d.setHours(0,0,0,0);g("lg-first").value=lgFirstNow?iso(d):iso(addDays(currentPayday(d),7));
+  var v=num(g("log-amt").value);g("lg-total").value=v>0&&(num(p.pct)||num(p.fixed))?money(presetRepay(p,v)):"";setLgOpts();}
+function savePresetFromForm(){var nm=(g("lg-app").value||"").trim();if(!nm){g("lg-app").focus();return;}ensurePresets();var k=presetKey(nm),p=D.appPresets[k]||clone(PRESET_DEFAULT);p.nm=nm;
+  p.count=Math.max(1,parseInt(g("lg-count").value,10)||4);p.every=parseInt(g("lg-every").value,10)||7;p.fee=num(g("lg-fee").value);p.bank=lgBank;p.firstNow=lgFirstNow;
+  var v=num(g("log-amt").value),tot=num(g("lg-total").value);if(v>0&&tot>v){p.fixed=num(tot-v);p.pct=0;}
+  D.appPresets[k]=p;save();renderAll();msg("Preset saved for "+nm);}
+function closeAppMenu(){var dl=g("applist"),b=g("lg-appdd");if(dl)dl.hidden=true;if(b)b.setAttribute("aria-expanded","false");}
+(function(){var b=g("lg-appdd");if(!b)return;
+  b.addEventListener("click",function(ev){ev.stopPropagation();var dl=g("applist");if(!dl.hidden){closeAppMenu();return;}updateApplist();dl.hidden=false;b.setAttribute("aria-expanded","true");});
+  document.addEventListener("click",function(ev){var dl=g("applist");if(!dl||dl.hidden)return;if(ev.target===b||b.contains(ev.target)||dl.contains(ev.target))return;closeAppMenu();});
+  document.addEventListener("keydown",function(ev){if(ev.key==="Escape")closeAppMenu();});})();
+var lgBank=true,lgFirstNow=false;
+function setLgOpts(){var bb=g("lg-bank"),fb=g("lg-firstnow");if(!bb||!fb)return;bb.classList.toggle("on",lgBank);bb.setAttribute("aria-pressed",lgBank?"true":"false");fb.classList.toggle("on",lgFirstNow);fb.setAttribute("aria-pressed",lgFirstNow?"true":"false");
+  g("lg-hint").textContent=(lgBank?"The money comes into the bank now. ":"No cash comes in, it is a card or a voucher. ")+(lgFirstNow?"The first payment comes out of the bank today, so that much must be in there; the rest follow at the spacing below. ":"The repayments start on the first date below. ")+"Repay is the amount plus any fee the app charges; empty means the same amount. Every 7 days is weekly, 14 is fortnightly. First is any date: the day you pull it out, your payday, a set day of the week, or one you set in their app. Later, in edit mode, any payment can be moved, pushed back a week or a fortnight, or split in two.";}
+function setLogSrc(s){
+  logSrc=s;var btns=document.querySelectorAll("#log-src button");for(var i=0;i<btns.length;i++)btns[i].classList.toggle("on",btns[i].dataset.src===s);
+  g("log-ext").hidden=s==="cash";g("log-spent").hidden=s!=="cash";g("log-spent").parentNode.classList.toggle("one",s!=="cash");
+  var today=new Date();today.setHours(0,0,0,0);
+  if(s==="advance"){g("lg-every").value=7;g("lg-count").value=4;g("lg-first").value=iso(addDays(currentPayday(today),7));g("lg-app").value="";g("lg-total").value="";lgBank=true;lgFirstNow=false;setLgOpts();}
+  updateApplist();
+}
+function addLog(sign){
+  var a=g("log-amt"),n=g("log-note");
+  var v=num(a.value);if(v<=0){a.focus();return;}
+  var note=(n.value||"").trim(),today=new Date();today.setHours(0,0,0,0);
+  if(logSrc==="advance"){
+    var app=(g("lg-app").value||"New app").trim(),total=num(g("lg-total").value)||v,count=Math.max(1,parseInt(g("lg-count").value,10)||4),every=parseInt(g("lg-every").value,10)||7,fee=num(g("lg-fee").value);
+    var first=lgFirstNow?iso(today):(g("lg-first").value||iso(addDays(currentPayday(today),7)));
+    var before=D.debts.length;addLoan(app,total,count,every,first,fee);
+    var delta=lgBank?v:0,txt=app+" "+money(v)+(lgBank?"":" card")+", repay "+money(total)+" in "+count;
+    if(lgFirstNow){var fp=D.debts[before];if(!D.paidPulls)D.paidPulls={};D.paidPulls[fp.id]=true;delta=num(delta-fp.amt);txt+=", 1 paid now";}
+    D.log.push({amt:delta,dir:1,note:note||txt,at:Date.now(),loan:addLoan.last?addLoan.last.id:null});
+    D.balance=num(D.balance+delta);
+  }else{
+    var amt=sign*v;D.log.push({amt:amt,dir:sign,note:note,at:Date.now()});D.balance=num(D.balance+amt);
+  }
+  balInput.value=money(D.balance);a.value="";n.value="";setLogSrc("cash");save();renderAll();
+}
+(function(){var sv=g("lg-save");if(sv)sv.addEventListener("click",savePresetFromForm);var ap=g("lg-app");if(ap)ap.addEventListener("change",function(){if(presetFor(ap.value))applyPreset(ap.value);});
+  var am=g("log-amt");if(am)am.addEventListener("input",function(){if(logSrc!=="advance")return;var p=presetFor(g("lg-app").value);if(!p||!(num(p.pct)||num(p.fixed)))return;var v=num(am.value);g("lg-total").value=v>0?money(presetRepay(p,v)):"";});})();
+(function(){var bb=g("lg-bank"),fb=g("lg-firstnow");if(bb)bb.addEventListener("click",function(){lgBank=!lgBank;setLgOpts();});if(fb)fb.addEventListener("click",function(){lgFirstNow=!lgFirstNow;if(lgFirstNow){var d=new Date();d.setHours(0,0,0,0);g("lg-first").value=iso(d);}setLgOpts();});})();
+(function(){var wd=g("lg-wd");if(wd){DAYS.forEach(function(d,i){var o=document.createElement("option");o.value=i;o.textContent=d;wd.appendChild(o);});
+    wd.addEventListener("change",function(){if(wd.value==="")return;var d=new Date();d.setHours(0,0,0,0);var want=parseInt(wd.value,10);while(d.getDay()!==want)d=addDays(d,1);g("lg-first").value=iso(d);wd.value="";});}
+  var tb=g("lg-today");if(tb)tb.addEventListener("click",function(){var d=new Date();d.setHours(0,0,0,0);g("lg-first").value=iso(d);});
+  var pb=g("lg-payday");if(pb)pb.addEventListener("click",function(){var d=new Date();d.setHours(0,0,0,0);g("lg-first").value=iso(addDays(currentPayday(d),7));});})();
+(function(){var btns=document.querySelectorAll("#log-src button");for(var i=0;i<btns.length;i++)(function(b){b.addEventListener("click",function(){setLogSrc(b.dataset.src);});})(btns[i]);})();
+
+/* ---------- render: WEEKS ---------- */
+var showAllWeeks=false;
+function renderWeeks(){
+  var P=simulate();
+  var story=document.getElementById("story");if(story){story.innerHTML="";
+    var fut=P.pulls.filter(function(x){return x.st==="paid"&&x.date.getTime()>=P.today.getTime()&&!x.ticked;}),lastP=fut.length?fut[fut.length-1]:null;
+    story.appendChild(el("div","big",lastP?"Debt free "+esc(fmtDY(lastP.date)):"Debt free"));
+    var next=null;D.lists.forEach(function(l){if(next||!listCounted(l)||listTotal(l)<=0)return;next=l;});
+    var ms=D.lists.filter(function(l){return l.milestone&&listCounted(l)&&listTotal(l)>0;})[0];
+    function line(a,b){var d=el("div","line");d.appendChild(el("span",null,a));d.appendChild(el("span","num",b));story.appendChild(d);}
+    if(next)line("Next from the queue: <b>"+esc(next.nm)+"</b>",P.reached[next.id]?fmtDY(P.reached[next.id]):"beyond ten years");
+    if(ms&&ms!==next)line("<b>"+esc(ms.nm)+"</b>",P.reached[ms.id]?fmtDY(P.reached[ms.id]):"beyond ten years");
+    var we=D.weekEnd||{},keys=Object.keys(we),held=keys.filter(function(k){return num(we[k])>=num(D.settings.floor);}).length;
+    line("Floor held on payday",keys.length?held+" of "+keys.length+" weeks":"no paydays recorded yet");
+    var bought=0,total=0;D.lists.forEach(function(l){if(!listCounted(l))return;l.items.forEach(function(x){if(itemOn(x)){total++;if(x.done)bought++;}});});
+    line("Bought from the queue",bought+" of "+total);}
+  var tb=document.getElementById("proj");tb.innerHTML="";
+  var more=document.getElementById("proj-more");more.hidden=P.rows.length<=26;
+  more.textContent=showAllWeeks?"Show the first 26 weeks":"Show all "+P.rows.length+" weeks";
+  more.onclick=function(){showAllWeeks=!showAllWeeks;renderWeeks();};
+  (showAllWeeks?P.rows:P.rows.slice(0,26)).forEach(function(r){
+    var tr=el("tr",r.buys>0?"buy":"");
+    var td0=el("td",null,fmtD(r.date));
+    if(r.buys>0)td0.appendChild(el("div","buysline","Buys "+money0(r.buys)+": "+esc(r.names.join(", "))));
+    tr.appendChild(td0);
+    tr.appendChild(el("td",null,money(r.inn)));
+    tr.appendChild(el("td",null,money(r.out)));
+    tr.appendChild(el("td",r.bal<0?"neg":"",money(r.bal)));
+    tb.appendChild(tr);
+  });
+  function chip(d){return el("span","when-chip","<b>"+d.getDate()+"</b>"+d.toLocaleDateString("en-AU",{month:"short"}));}
+  function who(nm,sub){var w=el("div","who");w.appendChild(el("div","nm",esc(nm)));if(sub)w.appendChild(el("div","sub",esc(sub)));return w;}
+  var up=document.getElementById("upcoming");up.innerHTML="";
+  P.rows.slice(0,8).forEach(function(r){
+    var h=el("li");h.style.background="var(--sunk)";h.appendChild(who(fmtD(r.date)+" \u2013 "+fmtD(r.end),"Out "+money(r.out)+", ends on "+money(r.bal)));h.appendChild(el("span","amt",money(r.inn)+" in"));up.appendChild(h);
+    D.weekly.filter(function(w){return weeklyOn(w,r.date);}).forEach(function(w){var li=el("li");li.appendChild(chip(r.date));li.appendChild(who(w.nm,"Weekly"));li.appendChild(el("span","amt",money(w.amt)));up.appendChild(li);});
+    billsIn(r.date,r.end).forEach(function(x){var li=el("li");li.appendChild(chip(x.date));li.appendChild(who(x.m.nm,"Monthly bill"));li.appendChild(el("span","amt",money(x.m.amt)));up.appendChild(li);});
+    pullsIn(r.date,r.end).forEach(function(x){up.appendChild(pullRow(x,true));});
+    if(r.buys>0){var b=el("li");b.appendChild(chip(r.date));b.appendChild(who("Buys "+r.names.join(", "),"From the queue"));b.appendChild(el("span","amt",money0(r.buys)));up.appendChild(b);}
+  });
+  var ul=document.getElementById("debts");ul.innerHTML="";
+  if(!P.pulls.length)ul.appendChild(el("li","empty","No loans listed."));
+  P.pulls.forEach(function(x){ul.appendChild(pullRow(x,false));});
+  var left=P.pulls.filter(function(x){return x.st==="paid"&&!x.ticked;}).reduce(function(a,x){return a+x.amt;},0);
+  var feesSoFar=0,feesAhead=0;P.pulls.forEach(function(x){if(!x.retryOf)return;var f=num(x.amt-x.retryOf.amt);if(x.date.getTime()<P.today.getTime())feesSoFar+=f;else feesAhead+=f;});
+  document.getElementById("debtleft").textContent=money(left)+" still due"+(feesSoFar>0?" \u00b7 "+money(feesSoFar)+" in fees so far":"")+(feesAhead>0?" \u00b7 "+money(feesAhead)+" in fees ahead":"");
+}
+
+/* ---------- render: BUY ---------- */
+var listSortable=null,SEL={},QUERY="";
+function qmatch(s){return String(s||"").toLowerCase().indexOf(QUERY)>-1;}
+function itemMatches(x){return qmatch(x.nm)||qmatch(x.note);}
+function listMatches(l){return qmatch(l.nm)||qmatch(l.det)||l.items.some(itemMatches);}
+function selCount(l){return l.items.filter(function(x){return SEL[x.id];}).length;}
+function delBtn(l){var n=selCount(l);var b=el("button","delsel",n?"Delete "+n:"Delete");b.type="button";b.disabled=!n;b.title="Delete the selected lines";
+  b.addEventListener("click",function(ev){ev.stopPropagation();if(!n)return;l.items=l.items.filter(function(x){if(SEL[x.id]){delete SEL[x.id];return false;}return true;});save();renderAll();});return b;}
+function powerBtn(obj,onToggle){
+  var b=el("button","pw"+(itemOn(obj)?" on":""),ICON_POWER);b.type="button";b.setAttribute("aria-pressed",itemOn(obj)?"true":"false");b.setAttribute("aria-label",itemOn(obj)?"Turn off":"Turn on");
+  b.addEventListener("click",function(ev){ev.preventDefault();ev.stopPropagation();if(b.disabled)return;obj.on=!itemOn(obj);onToggle();});
+  return b;
+}
+function renderBuy(){
+  var P=project(520);
+  var host=document.getElementById("lists");host.innerHTML="";
+  var leaves=0,done=0,spent=0,grand=0;
+  D.lists.forEach(function(l){
+    l.items.forEach(function(x){if(listCounted(l)&&itemOn(x)){leaves++;grand+=x.amt;if(x.done){done++;spent+=x.amt;}}});
+    if(QUERY&&!listMatches(l))return;
+    if(editing&&!QUERY)host.appendChild(insLine("div",function(){var i=D.lists.indexOf(l);D.lists.splice(i,0,newList());save();renderAll();}));
+    host.appendChild(groupEl(l,P));
+  });
+  document.getElementById("qcount").textContent=done+" of "+leaves+" bought";
+  document.getElementById("qmoney").textContent="$"+money0(spent)+" of $"+money0(grand);
+  document.getElementById("qbar").style.width=(grand>0?Math.min(100,spent/grand*100):0).toFixed(1)+"%";
+  if(window.Sortable){
+    if(listSortable)listSortable.destroy();
+    listSortable=Sortable.create(host,{draggable:".qgrp",handle:".handle.lh",animation:150,disabled:!editing||!!QUERY,onEnd:function(ev){var moved=D.lists.splice(ev.oldIndex,1)[0];D.lists.splice(ev.newIndex,0,moved);save();renderAll();}});
+  }
+}
+function groupEl(l,P){
+  var open=!!openGroups[l.id]||!!QUERY;
+  var locked=!!l.locked;
+  var shown=QUERY&&!qmatch(l.nm)&&!qmatch(l.det)?l.items.filter(itemMatches):l.items;
+  var box=el("div","qgrp"+(open?" open":"")+(l.milestone?" milestone":"")+(listCounted(l)?"":" notcounted")+(locked?" locked":""));
+  box.dataset.id=l.id;
+  var head=el("div","qhead");
+  head.appendChild(el("span","handle lh",ICON_GRIP));
+  var chev=el("button","chev",ICON_CHEV);chev.type="button";chev.setAttribute("aria-expanded",open?"true":"false");chev.setAttribute("aria-label","Show or hide the items");
+  chev.addEventListener("click",function(){openGroups[l.id]=!openGroups[l.id];box.classList.toggle("open",!!openGroups[l.id]);chev.setAttribute("aria-expanded",openGroups[l.id]?"true":"false");rememberOpen();});
+  head.appendChild(chev);
+  // list-level tick: all on-items bought = checked; some = partial; unticking one item only unticks that item
+  var onItems=l.items.filter(itemOn), doneN=onItems.filter(function(x){return x.done;}).length;
+  var all=el("input","tickall");all.type="checkbox";
+  if(editing&&!locked){var sN=selCount(l);all.setAttribute("aria-label","Select every item in "+l.nm);all.checked=l.items.length>0&&sN===l.items.length;all.indeterminate=sN>0&&sN<l.items.length;
+    all.addEventListener("change",function(){var to=all.checked;l.items.forEach(function(x){if(to)SEL[x.id]=true;else delete SEL[x.id];});renderAll();});}
+  else{all.setAttribute("aria-label","Mark every item in "+l.nm+" as bought");
+    all.checked=onItems.length>0&&doneN===onItems.length;all.indeterminate=doneN>0&&doneN<onItems.length;all.disabled=locked;
+    all.addEventListener("change",function(){
+      l.snap=l.items.map(function(x){return {id:x.id,done:!!x.done,on:itemOn(x)};});
+      var to=all.checked;onItems.forEach(function(x){if(!!x.done!==to){x.done=to;moveOnTick(to,x.amt,x.nm,"item:"+x.id);}});save();renderAll();
+    });}
+  head.appendChild(all);
+  var body=el("div","qbody");
+  var title=el("div","qtitle");
+  if(editing&&!locked){var nm=el("input","ed t");nm.value=l.nm;nm.setAttribute("aria-label","List name");nm.addEventListener("change",function(){l.nm=nm.value;save();renderAll();});title.appendChild(nm);}
+  else{var nmEl=el("span","nm",esc(l.nm));
+    if(l.snap){var rv=el("button","revert","↺");rv.type="button";rv.title="Put this list back to how it was before the tick-all";rv.setAttribute("aria-label","Revert this list to before the tick-all");
+      rv.addEventListener("click",function(ev){ev.stopPropagation();var m={};l.snap.forEach(function(s){m[s.id]=s;});l.items.forEach(function(x){if(m[x.id]){if(!!x.done!==!!m[x.id].done)moveOnTick(!!m[x.id].done,x.amt,x.nm,"item:"+x.id);x.done=m[x.id].done;x.on=m[x.id].on;}});delete l.snap;save();renderAll();});
+      nmEl.appendChild(rv);}
+    title.appendChild(nmEl);}
+  var tot=listTotal(l),bought=listBought(l);
+  var col=el("span","amtcol");col.appendChild(el("span","amt",(bought>0?money0(bought)+" / ":"")+money0(tot+bought)));
+  var lk=el("button","lock"+(locked?" on":""),(locked?ICON_LOCK:ICON_UNLOCK)+"<span>"+(locked?"Locked":"Lock")+"</span>");lk.type="button";lk.setAttribute("aria-pressed",locked?"true":"false");lk.setAttribute("aria-label",locked?"Unlock this list":"Lock this list so nothing in it can change");
+  lk.addEventListener("click",function(ev){ev.stopPropagation();l.locked=!locked;save();renderAll();});
+  if(editing&&!locked)col.appendChild(delBtn(l));
+  col.appendChild(lk);title.appendChild(col);
+  body.appendChild(title);
+  var n=l.items.filter(itemOn).length,d=l.items.filter(function(x){return itemOn(x)&&x.done;}).length;
+  var meta=(d+" of "+n+" bought")+(l.det?" · "+esc(l.det):"");
+  body.appendChild(el("div","qmeta",meta));
+  var when=el("div","qwhen");
+  if(!listCounted(l))when.textContent="Not counted";
+  else if(tot<=0&&bought>0)when.textContent="Done";
+  else if(P.reached[l.id])when.textContent="Reached by "+fmtDY(P.reached[l.id]);
+  else when.textContent="Beyond ten years at this rate";
+  body.appendChild(when);
+  if(editing&&!locked){
+    var gb=el("div","gbtns");gb.style.marginTop="8px";
+    var cnt=el("button","mini"+(listCounted(l)?" on":""),listCounted(l)?"Counted":"Not counted");cnt.type="button";cnt.addEventListener("click",function(){l.counted=!listCounted(l);save();renderAll();});gb.appendChild(cnt);
+    var ms=el("button","mini"+(l.milestone?" on":""),"Milestone");ms.type="button";ms.addEventListener("click",function(){l.milestone=!l.milestone;save();renderAll();});gb.appendChild(ms);
+    var add=el("button","mini","+ Item");add.type="button";add.addEventListener("click",function(){l.items.push({id:uid("x"),nm:"New item",amt:0,note:""});openGroups[l.id]=true;rememberOpen();save();renderAll();});gb.appendChild(add);
+    var del=el("button","mini","Delete list");del.type="button";del.addEventListener("click",function(){if(l.items.length&&!confirm("Delete "+l.nm+" and its "+l.items.length+" items?"))return;D.lists=D.lists.filter(function(q){return q!==l;});save();renderAll();});gb.appendChild(del);
+    body.appendChild(gb);
+  }
+  head.appendChild(body);
+  box.appendChild(head);
+  var subs=el("div","qsubs");subs.dataset.list=l.id;
+  shown.forEach(function(x,xi){if(editing&&!locked&&!QUERY)subs.appendChild(insLine("div",function(){l.items.splice(xi,0,newItem());openGroups[l.id]=true;rememberOpen();save();renderAll();}));subs.appendChild(subEl(l,x));});
+  if(editing&&!locked&&l.items.length)subs.appendChild(insLine("div",function(){l.items.push(newItem());openGroups[l.id]=true;rememberOpen();save();renderAll();}));
+  if(!l.items.length)subs.appendChild(el("div","qsub","<span class=\"qmeta\">Empty. In edit mode, drag an item here or tap + Item.</span>"));
+  box.appendChild(subs);
+  if(window.Sortable){
+    Sortable.create(subs,{group:{name:"items",pull:!locked,put:!locked},draggable:".qsub",handle:".handle.ih",animation:150,disabled:!editing||locked||!!QUERY,onEnd:function(ev){
+      var fromL=D.lists.filter(function(q){return q.id===ev.from.dataset.list;})[0],toL=D.lists.filter(function(q){return q.id===ev.to.dataset.list;})[0];
+      if(!fromL||!toL)return;var moved=fromL.items.splice(ev.oldIndex,1)[0];toL.items.splice(ev.newIndex,0,moved);save();renderAll();}});
+  }
+  return box;
+}
+function subEl(l,x){
+  var locked=!!l.locked;
+  var row=el("div","qsub"+(itemOn(x)?"":" off")+(x.done?" bought":""));
+  row.appendChild(el("span","handle ih",ICON_GRIP));
+  var tick=el("input","tick");tick.type="checkbox";
+  if(editing&&!locked){tick.checked=!!SEL[x.id];tick.setAttribute("aria-label","Select");tick.addEventListener("change",function(){if(tick.checked)SEL[x.id]=true;else delete SEL[x.id];renderAll();});}
+  else{tick.checked=!!x.done;tick.setAttribute("aria-label","Bought");tick.disabled=!itemOn(x)||locked;tick.addEventListener("change",function(){x.done=tick.checked;moveOnTick(tick.checked,x.amt,x.nm,"item:"+x.id);save();renderAll();});}
+  row.appendChild(tick);
+  var body=el("div","body");
+  var r=el("div","row");
+  if(editing&&!locked){var nm=el("input","ed t");nm.value=x.nm;nm.setAttribute("aria-label","Item name");nm.addEventListener("change",function(){x.nm=nm.value;save();renderAll();});r.appendChild(nm);
+    var a=el("input","ed n");a.value=money(x.amt);a.inputMode="decimal";a.setAttribute("aria-label","Amount");a.addEventListener("change",function(){var v=num(a.value);var r=roundUp(v);if(r!==v)x.exact=v;else delete x.exact;x.amt=r;save();renderAll();});r.appendChild(a);}
+  else{r.appendChild(el("span","nm",esc(x.nm)));if(x.done&&!locked)r.appendChild(paidBox(x));else r.appendChild(el("span","amt",money0(x.amt)));}
+  body.appendChild(r);
+  var noteTxt=x.note||"";
+  if(editing&&!locked){var nt=el("input","ed t");nt.value=x.note||"";nt.placeholder="Note";nt.style.marginTop="4px";nt.addEventListener("change",function(){x.note=nt.value;save();});body.appendChild(nt);}
+  else if(noteTxt)body.appendChild(el("div","qmeta",esc(noteTxt)));
+  row.appendChild(body);
+  row.appendChild(powerBtn(x,function(){save();renderAll();}));
+  if(editing){var del=el("button","x","×");del.type="button";del.setAttribute("aria-label","Delete item");del.addEventListener("click",function(){l.items=l.items.filter(function(q){return q!==x;});save();renderAll();});row.appendChild(del);}
+  return row;
+}
+
+/* ---------- render: PLAN ---------- */
+function dateField(label,obj,key){var s=el("span","edrow");var f=el("input","ed dt");f.type="date";f.value=obj[key]||"";f.setAttribute("aria-label",label+" date");f.addEventListener("change",function(){obj[key]=f.value;save();renderAll();});s.appendChild(el("span","qmeta",label));s.appendChild(f);return s;}
+/* an insert line between two rows: tap + to put a new line exactly there (edit mode only) */
+function insLine(tag,onInsert){var d=el(tag||"div","ins");var b=el("button","insbtn","+");b.type="button";b.title="Add a new line here";b.setAttribute("aria-label","Add a new line here");b.addEventListener("click",function(ev){ev.stopPropagation();onInsert();});d.appendChild(b);return d;}
+function newCost(){return {id:uid("w"),nm:"New cost",amt:0};}
+function newBill(){var d=new Date();return {id:uid("m"),nm:"New bill",amt:0,day:d.getDate(),from:""};}
+function newItem(){return {id:uid("x"),nm:"New item",amt:0,note:""};}
+function newList(){var l={id:uid("l"),nm:"New list",det:"",items:[]};openGroups[l.id]=true;rememberOpen();return l;}
+function kvEdit(host,obj,key,label,opts){
+  var row=el("div","kv"+(obj&&obj.on===false?" off":""));
+  var k=el("span","k");
+  if(opts&&opts.nameEditable&&editing){var nm=el("input","ed t");nm.value=obj.nm;nm.setAttribute("aria-label","Name");nm.addEventListener("change",function(){obj.nm=nm.value;save();renderAll();});k.appendChild(nm);}
+  else k.innerHTML=esc(label)+(opts&&opts.sub?"<small>"+esc(opts.sub)+"</small>":"");
+  row.appendChild(k);
+  if(opts&&opts.extra){row.classList.add("wrap");opts.extra.classList.add("extra");row.appendChild(opts.extra);}
+  if(editing){var a=el("input","ed n");a.value=money(num(obj[key]));a.inputMode="decimal";a.setAttribute("aria-label",label);a.addEventListener("change",function(){obj[key]=num(a.value);save();renderAll();});row.appendChild(a);}
+  else row.appendChild(el("span","v",money(num(obj[key]))));
+  if(opts&&opts.power)row.appendChild(powerBtn(obj,function(){save();renderAll();}));
+  if(opts&&opts.del&&editing){var x=el("button","x","×");x.type="button";x.setAttribute("aria-label","Delete");x.addEventListener("click",opts.del);row.appendChild(x);}
+  host.appendChild(row);
+}
+function renderPlan(){
+  var s=D.settings,host=document.getElementById("settings");host.innerHTML="";
+  kvEdit(host,s,"pay","Pay in",{sub:"Every payday"});
+  kvEdit(host,s,"spending","Spending money",{sub:"Stays in the main account, only once the floor is held"});
+  kvEdit(host,s,"floor","The floor",{sub:"Never spend below this"});
+  var prow=el("div","kv");prow.appendChild(el("span","k","Payday<small>Any day of the week, weekends too. Pay that lands late at night counts from that day.</small>"));
+  if(editing){var sel=el("select","ed dt");DAYS.forEach(function(d,i){var o=el("option",null,d);o.value=i;if(i===paydayWeekday())o.selected=true;sel.appendChild(o);});sel.setAttribute("aria-label","Payday");
+    sel.addEventListener("change",function(){s.payDay=parseInt(sel.value,10);var td=new Date();td.setHours(0,0,0,0);s.firstPayday=iso(currentPayday(td));save();renderAll();});prow.appendChild(sel);}
+  else prow.appendChild(el("span","v",DAYS[paydayWeekday()]));
+  host.appendChild(prow);
+  var wk=document.getElementById("weekly");wk.innerHTML="";
+  D.weekly.forEach(function(w,wi){
+    if(editing)wk.appendChild(insLine("div",function(){D.weekly.splice(wi,0,newCost());save();renderAll();}));
+    var ex=el("button","autobtn"+(w.auto?" on":""),w.auto?"assumed":"tick it");ex.type="button";ex.title=w.auto?"Counted as paid once its week ends. Tap to make it wait for a tick.":"Waits for a tick every week. Tap to count it as paid once its week ends.";
+    ex.addEventListener("click",function(){w.auto=!w.auto;save();renderAll();});
+    var both=el("span","edrow");both.appendChild(ex);
+    if(editing){both.appendChild(dateField("from",w,"from"));both.appendChild(dateField("until",w,"until"));
+      var sw=el("button","autobtn","monthly");sw.type="button";sw.title="Move this to the monthly bills. Check the amount after.";
+      sw.addEventListener("click",function(){D.weekly=D.weekly.filter(function(q){return q!==w;});D.monthly.push({id:w.id,nm:w.nm,amt:w.amt,day:1,from:w.from||"",until:w.until||"",auto:!!w.auto,on:w.on});save();renderAll();});both.appendChild(sw);}
+    var sub=[w.auto?"assumed paid once the week ends":"",w.from?"starts "+fmtDY(fromIso(w.from)):"",w.until?"ends "+fmtDY(fromIso(w.until)):""].filter(Boolean).join(", ");
+    kvEdit(wk,w,"amt",w.nm,{nameEditable:true,power:true,extra:both,sub:sub,del:function(){D.weekly=D.weekly.filter(function(q){return q!==w;});save();renderAll();}});});
+  if(editing)wk.appendChild(insLine("div",function(){D.weekly.push(newCost());save();renderAll();}));
+  document.getElementById("weeklytot").textContent=money(weeklyTotal())+" a week";
+  var mo=document.getElementById("monthly");mo.innerHTML="";
+  var today=new Date();
+  D.monthly.forEach(function(m,mi){
+    if(editing)mo.appendChild(insLine("div",function(){D.monthly.splice(mi,0,newBill());save();renderAll();}));
+    var extra=null;
+    if(editing){extra=el("span","edrow");var d=el("input","ed d");d.value=m.day||1;d.inputMode="numeric";d.setAttribute("aria-label","Day of month");d.addEventListener("change",function(){m.day=Math.max(1,Math.min(31,parseInt(d.value,10)||1));save();renderAll();});extra.appendChild(el("span","qmeta","day"));extra.appendChild(d);
+      extra.appendChild(dateField("from",m,"from"));extra.appendChild(dateField("until",m,"until"));
+      var sw=el("button","autobtn","weekly");sw.type="button";sw.title="Move this to the weekly costs. Check the amount after.";
+      sw.addEventListener("click",function(){D.monthly=D.monthly.filter(function(q){return q!==m;});D.weekly.push({id:m.id,nm:m.nm,amt:m.amt,from:m.from||"",until:m.until||"",auto:!!m.auto,on:m.on});save();renderAll();});extra.appendChild(sw);}
+    var sub=[m.day?"Day "+m.day:"",m.from&&!sameOrAfter(today,fromIso(m.from))?"starts "+fmtDY(fromIso(m.from)):"",m.until?"ends "+fmtDY(fromIso(m.until)):"",m.auto?"assumed paid once the week ends":""].filter(Boolean).join(", ");
+    var ab=el("button","autobtn"+(m.auto?" on":""),m.auto?"assumed":"tick it");ab.type="button";ab.title=m.auto?"Counted as paid once its week ends. Tap to make it wait for a tick.":"Waits for a tick every time. Tap to count it as paid once its week ends.";
+    ab.addEventListener("click",function(){m.auto=!m.auto;save();renderAll();});
+    var both=el("span","edrow");both.appendChild(ab);if(extra)both.appendChild(extra);
+    kvEdit(mo,m,"amt",m.nm,{nameEditable:true,power:true,sub:sub,extra:both,del:function(){D.monthly=D.monthly.filter(function(q){return q!==m;});save();renderAll();}});
+  });
+  if(editing)mo.appendChild(insLine("div",function(){D.monthly.push(newBill());save();renderAll();}));
+  var ih=document.getElementById("install");if(ih){ih.innerHTML="";
+    var standaloneMode=window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches;
+    if(STANDALONE){ih.appendChild(el("div","kv","<span class=\"k\">"+(standaloneMode?"Installed on this phone.":"Running in the browser.")+"<small>"+(standaloneMode?"Open it from the home screen like any app.":"In Chrome, open the menu and tap Install app, or Add to Home screen.")+"</small></span>"));}
+    else if(INSTALL_URL){ih.appendChild(el("div","kv","<span class=\"k\">Install on your phone<small>Open this link on the phone, then in Chrome tap the menu and Install app (or Add to Home screen). It becomes an app with its own icon.</small><a class=\"lnk\" href=\""+esc(INSTALL_URL)+"\" target=\"_blank\" rel=\"noopener\">"+esc(INSTALL_URL)+"</a></span>"));}
+    else ih.appendChild(el("div","kv","<span class=\"k\">Install link<small>Not set up yet.</small></span>"));}
+  renderSync();
+  var ph=document.getElementById("presets");if(ph){ph.innerHTML="";ensurePresets();
+    Object.keys(D.appPresets).sort().forEach(function(k){var p=D.appPresets[k];var row=el("div","kv wrap");
+      var kk=el("span","k");
+      if(editing){var nm=el("input","ed t");nm.value=p.nm||k;nm.setAttribute("aria-label","App name");nm.addEventListener("change",function(){var nk=presetKey(nm.value);if(!nk)return;delete D.appPresets[k];p.nm=nm.value.trim();D.appPresets[nk]=p;save();renderAll();});kk.appendChild(nm);}
+      else kk.innerHTML=esc(p.nm||k)+"<small>"+p.count+" payments every "+p.every+" days, bounce fee "+money(num(p.fee))+", repay +"+num(p.pct)+"% +"+money(num(p.fixed))+(p.bank?", lands in the bank":", a card, no cash in")+(p.firstNow?", 1st payment now":"")+"</small>";
+      row.appendChild(kk);
+      if(editing){var ex=el("span","edrow extra");
+        function fld(label,key,cls,parse){ex.appendChild(el("span","qmeta",label));var i=el("input","ed "+cls);i.value=key==="fee"||key==="fixed"?money(num(p[key])):p[key];i.inputMode="decimal";i.setAttribute("aria-label",label);i.addEventListener("change",function(){p[key]=parse(i.value);save();renderAll();});ex.appendChild(i);}
+        fld("payments","count","d",function(v){return Math.max(1,parseInt(v,10)||1);});fld("every","every","d",function(v){return parseInt(v,10)||7;});fld("days, bounce fee","fee","n",num);fld("repay +%","pct","d",num);fld("+ fixed","fixed","n",num);
+        var bb=el("button","mini"+(p.bank?" on":""),"Lands in the bank");bb.type="button";bb.addEventListener("click",function(){p.bank=!p.bank;save();renderAll();});ex.appendChild(bb);
+        var fb=el("button","mini"+(p.firstNow?" on":""),"1st payment now");fb.type="button";fb.addEventListener("click",function(){p.firstNow=!p.firstNow;save();renderAll();});ex.appendChild(fb);
+        row.appendChild(ex);
+        var x=el("button","x","×");x.type="button";x.setAttribute("aria-label","Delete this preset");x.addEventListener("click",function(){delete D.appPresets[k];save();renderAll();});row.appendChild(x);}
+      ph.appendChild(row);});
+    if(!Object.keys(D.appPresets).length)ph.appendChild(el("div","kv","<span class=\"k\">No presets yet.</span>"));}
+  var act=activeMonthly(today).reduce(function(a,m){return a+m.amt;},0),all=D.monthly.filter(itemOn).reduce(function(a,m){return a+m.amt;},0);
+  document.getElementById("monthlytot").textContent=money(act)+" a month now"+(all!==act?" · "+money(all)+" later":"");
+  var dv=document.getElementById("derived");dv.innerHTML="";
+  var share=activeMonthly(today).reduce(function(a,m){return a+m.amt;},0)/4, sv=num(s.pay)-weeklyTotal()-share-num(s.spending);
+  [["Weekly costs",weeklyTotal(),""],["Monthly bills, averaged",share,"A quarter of the active bills each week"],["Spending",num(s.spending),""],["Saved, on average",sv,"What the queue is bought from. The projection uses the real bill dates",true]].forEach(function(r){
+    var row=el("div","kv"+(r[3]?" tot":""));row.appendChild(el("span","k",esc(r[0])+(r[2]?"<small>"+esc(r[2])+"</small>":"")));row.appendChild(el("span","v"+(r[1]<0?" neg":""),money(r[1])));dv.appendChild(row);
+  });
+  var later=D.monthly.filter(function(m){return itemOn(m)&&m.from&&!sameOrAfter(today,fromIso(m.from));});
+  if(later.length){var note=el("div","kv");note.appendChild(el("span","k","Later<small>"+later.map(function(m){return esc(m.nm)+" from "+fmtDY(fromIso(m.from))+" takes the average saving to "+money(num(s.pay)-weeklyTotal()-activeMonthly(fromIso(m.from)).reduce(function(a,q){return a+q.amt;},0)/4-num(s.spending));}).join(". ")+"</small>"));dv.appendChild(note);}
+  var P=simulate(),ul=document.getElementById("miles");ul.innerHTML="";
+  var fut=P.pulls.filter(function(x){return x.st==="paid"&&x.date.getTime()>=P.today.getTime();});
+  if(fut.length){var lastP=fut[fut.length-1];var li0=el("li","big");li0.appendChild(el("span","pip"));li0.appendChild(el("span","t","Debt free"));li0.appendChild(el("span","d",fmtDY(lastP.date)));ul.appendChild(li0);}
+  // edit mode: drag to reorder the queue, tap the dot to make a milestone, rename, or delete the list
+  var counted=D.lists.filter(listCounted);
+  counted.forEach(function(l){var tot=listTotal(l);var li=el("li",(l.milestone?"big":"")+(tot<=0?" past":"")+(editing?" msrow":""));
+    if(editing){li.appendChild(el("span","handle mh",ICON_GRIP));
+      var pb=el("button","pipbtn"+(l.milestone?" on":""),"<span class=\"pip\"></span>");pb.type="button";pb.title=l.milestone?"A milestone. Tap to make it a plain list":"Tap to make this a milestone";pb.setAttribute("aria-pressed",l.milestone?"true":"false");pb.addEventListener("click",function(){l.milestone=!l.milestone;save();renderAll();});li.appendChild(pb);
+      var nm=el("input","ed t");nm.value=l.nm;nm.setAttribute("aria-label","List name");nm.addEventListener("change",function(){l.nm=nm.value;save();renderAll();});var tw=el("span","t");tw.appendChild(nm);li.appendChild(tw);}
+    else{li.appendChild(el("span","pip"));li.appendChild(el("span","t",esc(l.nm)));}
+    li.appendChild(el("span","d",tot<=0?"Done":P.reached[l.id]?fmtDY(P.reached[l.id]):"—"));
+    if(editing){var x=el("button","x","×");x.type="button";x.setAttribute("aria-label","Delete this list");x.addEventListener("click",function(){if(l.items.length&&!confirm("Delete "+l.nm+" and its "+l.items.length+" items?"))return;D.lists=D.lists.filter(function(q){return q!==l;});save();renderAll();});li.appendChild(x);}
+    ul.appendChild(li);});
+  if(window.Sortable){if(milesSortable)milesSortable.destroy();milesSortable=Sortable.create(ul,{draggable:".msrow",handle:".handle.mh",animation:150,disabled:!editing,onEnd:function(ev){
+    var moved=counted.splice(ev.oldIndex,1)[0];counted.splice(ev.newIndex,0,moved);var ci=0;D.lists=D.lists.map(function(l){return listCounted(l)?counted[ci++]:l;});save();renderAll();}});}
+}
+var milesSortable=null;
+
+/* ---------- glue ---------- */
+function renderAll(){[renderNow,renderLog,renderWeeks,renderBuy,renderPlan].forEach(function(f){try{f();}catch(e){console.error(e);try{msg("Problem in "+f.name+": "+(e&&e.message||e));}catch(_){}}});}
+balInput.addEventListener("focus",function(){history.push(clone(D));if(history.length>60)history.shift();refreshUndo();});
+balInput.addEventListener("input",function(){if(viewWeek!==0)return;D.balance=num(balInput.value);lastSnap=clone(D);save(true);renderAll();});
+balInput.addEventListener("blur",function(){balInput.value=money(D.balance);});
+document.getElementById("wk-prev").addEventListener("click",function(){var first=fromIso(D.settings.firstPayday),today=new Date();today.setHours(0,0,0,0);var target=addDays(currentPayday(today),(viewWeek-1)*7);if(first&&target.getTime()<first.getTime())return;viewWeek--;renderNow();});
+document.getElementById("wk-next").addEventListener("click",function(){viewWeek++;renderNow();});
+document.getElementById("wk-home").addEventListener("click",function(){viewWeek=0;renderNow();});
+(function(){var q=document.getElementById("qsearch");if(q)q.addEventListener("input",function(){QUERY=q.value.trim().toLowerCase();renderBuy();});})();
+document.getElementById("paybtn").addEventListener("click",function(){var td=new Date();td.setHours(0,0,0,0);payLanded(weekKey(currentPayday(td)),true);});
+document.getElementById("payskip").addEventListener("click",function(){var td=new Date();td.setHours(0,0,0,0);payLanded(weekKey(currentPayday(td)),false);});
+document.getElementById("log-spent").addEventListener("click",function(){addLog(-1);});
+document.getElementById("log-got").addEventListener("click",function(){addLog(1);});
+document.getElementById("logform").addEventListener("submit",function(ev){ev.preventDefault();addLog(logSrc==="cash"?-1:1);});
+document.getElementById("editbtn").addEventListener("click",function(){editing=!editing;SEL={};document.body.classList.toggle("editing",editing);this.setAttribute("aria-pressed",editing?"true":"false");this.textContent=editing?"Done":"Edit";renderAll();});
+document.getElementById("add-list").addEventListener("click",function(){var l={id:uid("l"),nm:"New list",det:"",items:[]};D.lists.push(l);openGroups[l.id]=true;rememberOpen();save();renderAll();});
+document.getElementById("reset-lists").addEventListener("click",function(){if(!confirm("Put the queue back to the plan? Your ticks and changes to the lists are lost."))return;D.lists=clone(SEED.lists);save();renderAll();});
+document.getElementById("add-weekly").addEventListener("click",function(){D.weekly.push({id:uid("w"),nm:"New cost",amt:0});save();renderAll();});
+document.getElementById("add-monthly").addEventListener("click",function(){D.monthly.push({id:uid("m"),nm:"New bill",amt:0,day:1,from:""});save();renderAll();});
+document.getElementById("now-add-weekly").addEventListener("click",function(){D.weekly.push({id:uid("w"),nm:"New cost",amt:0});save();renderAll();});
+document.getElementById("now-add-monthly").addEventListener("click",function(){var d=new Date();D.monthly.push({id:uid("m"),nm:"New bill",amt:0,day:d.getDate(),from:""});save();renderAll();});
+document.getElementById("now-add-single").addEventListener("click",function(){D.debts.push({id:uid("p"),date:iso(new Date()),app:"New payment",loan:null,amt:0,st:"",note:""});save();renderAll();});
+document.getElementById("now-add-loan").addEventListener("click",function(){showTab("plan");var a=document.getElementById("ln-app");if(a){a.scrollIntoView({block:"center"});a.focus();}});
+document.getElementById("add-preset").addEventListener("click",function(){ensurePresets();var n=1,k="new app";while(D.appPresets[k]){n++;k="new app "+n;}var p=clone(PRESET_DEFAULT);p.nm=k;D.appPresets[k]=p;save();renderAll();});
+document.getElementById("add-debt").addEventListener("click",function(){D.debts.push({id:uid("p"),date:iso(new Date()),app:"New payment",loan:null,amt:0,st:"",note:""});save();renderAll();});
+document.getElementById("ln-add").addEventListener("click",function(){
+  var app=document.getElementById("ln-app").value,total=num(document.getElementById("ln-total").value);
+  if(!app.trim()||total<=0){document.getElementById(app.trim()?"ln-total":"ln-app").focus();return;}
+  addLoan(app,total,document.getElementById("ln-count").value,document.getElementById("ln-every").value,document.getElementById("ln-first").value,document.getElementById("ln-fee").value);
+  document.getElementById("ln-app").value="";document.getElementById("ln-total").value="";save();renderAll();
+});
+var PAGES=["now","weeks","buy","plan"];
+function showTab(p){PAGES.forEach(function(q){var on=q===p;document.getElementById("t-"+q).setAttribute("aria-selected",on?"true":"false");document.getElementById("p-"+q).hidden=!on;});document.getElementById("weekbar").hidden=p!=="now";window.scrollTo(0,0);}
+PAGES.forEach(function(p){document.getElementById("t-"+p).addEventListener("click",function(){showTab(p);});});
+(function(){var d=new Date();document.getElementById("today").textContent=d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});})();
+
+/* ---------- undo + persistence ---------- */
+var history=[], lastSnap=clone(D), undoBtn=document.getElementById("undobtn");
+function refreshUndo(){undoBtn.disabled=history.length===0;undoBtn.textContent="Undo"+(history.length?" ("+history.length+")":"");}
+function msg(t){var m=document.getElementById("savemsg");if(m)m.textContent=t;}
+function write(noGist){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(function(){
+    D.updatedAt=Date.now();var copy=clone(D);
+    if(db)db.doc("app/data").set(copy).then(function(){msg("Saved");}).catch(function(){msg("Could not save. Your changes stay on screen only.");});
+    else msg(lsSet(copy)?"Saved on this device":"Could not save on this device.");
+    if(!noGist)gistQueue();
+  },700);
+}
+function save(skipHistory){
+  if(!skipHistory){history.push(lastSnap);if(history.length>60)history.shift();lastSnap=clone(D);refreshUndo();}
+  write();
+}
+function undo(){
+  if(!history.length)return;
+  D=history.pop();lastSnap=clone(D);refreshUndo();
+  balInput.value=money(D.balance);renderAll();write();
+}
+undoBtn.addEventListener("click",undo);
+document.addEventListener("keydown",function(ev){
+  if((ev.ctrlKey||ev.metaKey)&&!ev.shiftKey&&(ev.key==="z"||ev.key==="Z")){
+    var t=ev.target,tag=t&&t.tagName;
+    if(tag==="INPUT"||tag==="TEXTAREA")return; // let the field keep its own undo
+    ev.preventDefault();undo();
+  }
+});
+refreshUndo();
+ensureLoans();
+balInput.value=money(D.balance);
+renderAll();
+/* ---------- sync: a secret GitHub gist that both the phone app and the claude.ai page read and write ---------- */
+var SYNC={token:"",gist:"0c5df31451d6912bceea73dacc6f050a",auto:true},gistTimer=null,INSTALL_URL="https://gregorywaaka-commits.github.io/payday/";
+function syncLoad(){try{var s=localStorage.getItem("payday:sync");if(s){var o=JSON.parse(s);if(o&&typeof o==="object")SYNC=o;}}catch(e){}renderSync();}
+function syncSave(){try{localStorage.setItem("payday:sync",JSON.stringify(SYNC));}catch(e){}renderSync();}
+function gistReady(){return !!(SYNC.token&&SYNC.gist);}
+function syncMsg(s){SYNC.last=s;var e=document.getElementById("sync-status");if(e)e.textContent=s;}
+function gistHeaders(){return {"Authorization":"Bearer "+SYNC.token,"Accept":"application/vnd.github+json","Content-Type":"application/json"};}
+function gistPush(){
+  if(!gistReady())return Promise.resolve(false);
+  var body={files:{"payday-data.json":{content:JSON.stringify(D)}}};
+  return fetch("https://api.github.com/gists/"+SYNC.gist,{method:"PATCH",headers:gistHeaders(),body:JSON.stringify(body)})
+    .then(function(r){if(!r.ok)throw new Error("GitHub said "+r.status);syncMsg("Sent "+new Date().toLocaleTimeString("en-AU",{hour:"numeric",minute:"2-digit"}));return true;})
+    .catch(function(e){syncMsg("Send failed: "+e.message);return false;});
+}
+function gistPull(force){
+  if(!gistReady())return Promise.resolve(false);
+  return fetch("https://api.github.com/gists/"+SYNC.gist,{headers:gistHeaders()})
+    .then(function(r){if(!r.ok)throw new Error("GitHub said "+r.status);return r.json();})
+    .then(function(g){var f=g.files&&g.files["payday-data.json"];if(!f)throw new Error("no payday-data.json in that gist");
+      return f.truncated?fetch(f.raw_url).then(function(r){return r.text();}):Promise.resolve(f.content);})
+    .then(function(txt){var x=JSON.parse(txt);if(!x||!x.lists||!x.settings)throw new Error("that copy is not app data");
+      if(force||(x.updatedAt||0)>(D.updatedAt||0)){adoptData(x);lastSnap=clone(D);history=[];refreshUndo();write(true);syncMsg("Got the copy from "+(x.updatedAt?new Date(x.updatedAt).toLocaleString("en-AU",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}):"the gist"));return true;}
+      syncMsg("This copy is the newest. Nothing to get.");return false;})
+    .catch(function(e){syncMsg("Get failed: "+e.message);return false;});
+}
+function gistQueue(){if(!gistReady()||!SYNC.auto)return;clearTimeout(gistTimer);gistTimer=setTimeout(gistPush,4000);}
+function dataFileName(){return "payday-"+iso(new Date())+".json";}
+function exportCopy(){
+  var txt=JSON.stringify(D,null,1),name=dataFileName();
+  if(!STANDALONE&&window.claude&&window.claude.use){return window.claude.use("downloads").then(function(dl){if(!dl)throw new Error("unavailable");return dl.save({filename:name,data:txt});}).then(function(){msg("Copy saved");}).catch(function(e){msg("Could not save a copy"+(e&&e.code?" ("+e.code+")":""));});}
+  try{var blob=new Blob([txt],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},2000);msg("Copy saved");}catch(e){msg("Could not save a copy");}
+}
+function shareCopy(){
+  try{var file=new File([JSON.stringify(D,null,1)],dataFileName(),{type:"application/json"});
+    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]})))return navigator.share({files:[file],title:"Payday data"}).catch(function(){});}catch(e){}
+  exportCopy();
+}
+function importCopy(file){
+  var rd=new FileReader();rd.onload=function(){try{var x=JSON.parse(rd.result);if(!adoptData(x))throw new Error("bad");lastSnap=clone(D);history=[];refreshUndo();save();msg("Restored from "+file.name);}catch(e){msg("That file is not app data.");}};rd.readAsText(file);
+}
+function registerSW(){try{if("serviceWorker" in navigator&&location.protocol==="https:"&&STANDALONE)navigator.serviceWorker.register("sw.js").catch(function(){});}catch(e){}}
+function renderSync(){
+  var host=document.getElementById("sync");if(!host)return;host.innerHTML="";
+  var tk=el("input","ed t");tk.type="password";tk.value=SYNC.token||"";tk.placeholder="GitHub token (gist only)";tk.setAttribute("aria-label","GitHub token");tk.autocomplete="off";tk.addEventListener("change",function(){SYNC.token=tk.value.trim();syncSave();});
+  var gi=el("input","ed t");gi.value=SYNC.gist||"";gi.placeholder="Gist id";gi.setAttribute("aria-label","Gist id");gi.addEventListener("change",function(){SYNC.gist=gi.value.trim().replace(/^.*\//,"");syncSave();});
+  var r1=el("div","edrow");r1.appendChild(tk);host.appendChild(r1);var r2=el("div","edrow");r2.appendChild(gi);host.appendChild(r2);
+  var r3=el("div","edrow");
+  var send=el("button","mini on","Send now");send.type="button";send.disabled=!gistReady();send.addEventListener("click",function(){syncMsg("Sending\u2026");gistPush();});r3.appendChild(send);
+  var get=el("button","mini","Get now");get.type="button";get.disabled=!gistReady();get.addEventListener("click",function(){syncMsg("Getting\u2026");gistPull(true);});r3.appendChild(get);
+  var au=el("button","mini"+(SYNC.auto!==false?" on":""),"Send after every change");au.type="button";au.addEventListener("click",function(){SYNC.auto=SYNC.auto===false;syncSave();});r3.appendChild(au);
+  host.appendChild(r3);
+  var st=el("div","qmeta");st.id="sync-status";st.textContent=SYNC.last||(gistReady()?"Ready.":"Put the token and the gist id in, and the phone and the computer share one copy.");host.appendChild(st);
+  var r4=el("div","edrow");r4.style.marginTop="8px";
+  var dl=el("button","mini","Download a copy");dl.type="button";dl.addEventListener("click",exportCopy);r4.appendChild(dl);
+  if(STANDALONE&&navigator.share){var sh=el("button","mini","Share a copy");sh.type="button";sh.addEventListener("click",shareCopy);r4.appendChild(sh);}
+  var fi=el("input");fi.type="file";fi.accept="application/json,.json";fi.hidden=true;fi.addEventListener("change",function(){if(fi.files&&fi.files[0])importCopy(fi.files[0]);fi.value="";});
+  var rs=el("button","mini","Restore from a copy");rs.type="button";rs.addEventListener("click",function(){fi.click();});r4.appendChild(rs);r4.appendChild(fi);
+  host.appendChild(r4);
+}
+/* ---------- storage: the artifact database when this runs inside claude.ai; this device's own storage when it runs as the installed app ---------- */
+var LS_KEY="payday:data",STANDALONE=!(window.claude&&window.claude.use);
+function lsGet(){try{var s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+function lsSet(v){try{localStorage.setItem(LS_KEY,JSON.stringify(v));return true;}catch(e){return false;}}
+/* takes a saved copy (from the database, this device, a gist, or a file), brings it up to date, and shows it */
+function adoptData(x){
+  if(!x||!x.lists||!x.settings)return false;
+  D=clone(x);
+
+        // carry forward any seed fields a saved copy lacks
+        ["weekly","monthly","debts","log"].forEach(function(k){if(!Array.isArray(D[k]))D[k]=clone(SEED[k]);});
+        if(!D.debtsV2){if(D.debts.some(function(p){return /^p\d+$/.test(p.id)&&(/Retries|Retry of|plus the fee|early payoff/i.test(p.note||"")||p.st==="bounce");})){D.debts=clone(SEED.debts);D.loans=clone(SEED.loans);}D.debtsV2=true;}
+        if(!D.paid||typeof D.paid!=="object")D.paid={};
+        if(!D.seedPaidSet){Object.keys(SEED.paid||{}).forEach(function(k){D.paid[k]=D.paid[k]||{};Object.keys(SEED.paid[k]).forEach(function(id){if(SEED.paid[k][id])D.paid[k][id]=true;});});D.seedPaidSet=true;}
+        D.monthly.forEach(function(m){if(m.id==="m2"&&/^vodafone/i.test(m.nm||""))m.nm="Phone";});
+        ensurePresets();
+        if(!D.payIn){D.payIn={};var fk=D.settings.firstPayday;if(fk)D.payIn[fk]=true;}
+        if(!D.namesV2){var NM={"house": ["House basics", "House basics"], "kitchen": ["Kitchen and fridge", "Kitchen and fridge"], "clothes": ["Clothes and shoes", "Clothes and shoes"], "cutlery": ["Cutlery and plates", "Cutlery and plates"], "furn": ["Furniture, security and the cat", "Furniture, security and cat"], "licence": ["The licence", "Licence"], "car": ["The car, or the renovations", "Car or renovations"], "toolsw": ["Tools for the desk: wood", "Desk tools: wood"], "toolsm": ["Tools for the desk: metal", "Desk tools: metal"], "desk": ["The desk and kitchen table", "Desk and kitchen table"], "chair": ["The computer chair", "Computer chair"], "computer": ["THE COMPUTER", "Computer"], "bookshelf": ["The bookshelf", "Bookshelf"], "bed": ["The new bed", "Bed"], "ute": ["The ute, or a second car", "Ute or second car"], "trailer": ["The trailer", "Trailer"], "washer": ["The washing machine", "Washing machine"], "camping": ["The camping gear", "Camping gear"], "laptop": ["The laptop", "Laptop"], "tablet": ["The tablet", "Tablet"], "consoles": ["The consoles", "Consoles"], "couches": ["The couches", "Couches"], "tv": ["The television", "Television"], "optional": ["Optional tools, not counted", "Optional tools"]};D.lists.forEach(function(l){var m=NM[l.id];if(m&&l.nm===m[0])l.nm=m[1];});D.namesV2=true;}
+        if(!D.autoSet){D.weekly.forEach(function(w){if(/^(rent|food|smokes)$/i.test(w.nm||""))w.auto=true;});D.monthly.forEach(function(m){if(/^(phone|public transport|youtube)$/i.test(m.nm||""))m.auto=true;});D.autoSet=true;}
+        ensureLoans();
+        if(!D.paidPulls||typeof D.paidPulls!=="object")D.paidPulls={};if(!D.bouncePulls||typeof D.bouncePulls!=="object")D.bouncePulls={};
+        D.debts.forEach(function(p){if(p.st==="paid"){D.paidPulls[p.id]=true;p.st="";}else if(p.st==="bounce"){D.bouncePulls[p.id]=true;p.st="";}});
+        if(typeof D.balance!=="number")D.balance=num(SEED.balance);
+        lastSnap=clone(D);history=[];refreshUndo();
+  balInput.value=money(D.balance);renderAll();return true;
+}
+function firstRun(){ensureLoans();lastSnap=clone(D);history=[];refreshUndo();balInput.value=money(D.balance);renderAll();save();}
+function startStandalone(){
+  var x=lsGet();if(!adoptData(x))firstRun();else msg("Loaded from this phone");
+  syncLoad();gistPull(false);registerSW();
+}
+if(!STANDALONE){
+  window.claude.use("db").then(function(d){
+    if(!d){STANDALONE=true;startStandalone();return;}db=d;
+    return db.doc("app/data").get().then(function(doc){
+      var x=doc&&doc.exists?(doc.data()||{}):null;
+      if(x&&x.lists&&x.settings){adoptData(x);msg("Saved");syncLoad();gistPull(false);}
+      else{ // first run: read the old v1 state if it exists, then seed
+        return db.doc("app/state").get().then(function(old){
+          if(old&&old.exists){var o=old.data()||{};if(typeof o.balance==="number")D.balance=o.balance;if(Array.isArray(o.log))D.log=o.log.slice();}
+          firstRun();syncLoad();
+        });
+      }
+    });
+  }).catch(function(){STANDALONE=true;startStandalone();});
+}else startStandalone();
+})();
+</script>
