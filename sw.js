@@ -1,5 +1,5 @@
 /* Payday service worker: the app shell is cached so it opens with no signal; the page itself is fetched fresh when the network is there. */
-var VER = "payday-202609250718";
+var VER = "payday-202609250719";
 var SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-192.png", "./icons/maskable-512.png"];
 self.addEventListener("install", function (ev) {
   ev.waitUntil(caches.open(VER).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
