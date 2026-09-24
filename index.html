@@ -65,6 +65,10 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backgroun
 .revert:focus-visible{outline:2px solid var(--accent)}
 .editbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
+.toast{position:fixed;left:12px;right:12px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:31;background:var(--ink);color:var(--surface);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13.5px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.toast .mini.on{background:var(--accent);color:#08110c;border-color:transparent}
+.fab{position:fixed;right:14px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:29;width:46px;height:46px;border-radius:50%;border:0;background:var(--accent);color:#08110c;font:800 24px/1 "Archivo",sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer}
+.fab[hidden]{display:none}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--hair);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
 nav.tabs button{flex:1;appearance:none;border:0;background:none;cursor:pointer;padding:8px 4px 7px;border-radius:10px;font:600 11px/1.2 "Archivo",system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:5px}
 nav.tabs button .dot{width:18px;height:3px;border-radius:2px;background:transparent}
@@ -224,6 +228,8 @@ th:first-child,td:first-child{text-align:left;white-space:normal;width:100%}
 .autobtn{font:600 10px/1 "Archivo",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--sunk);border:1px solid var(--hair);border-radius:999px;padding:5px 8px;margin-right:6px;cursor:pointer}
 .autobtn.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
 .morebtn{display:block;width:100%;appearance:none;border:0;border-top:1px solid var(--hair);background:transparent;color:var(--accent);padding:11px;font:600 12px/1 "Archivo",sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.buysline.bad{color:var(--owe)}.buysline.good{color:var(--done)}
+tbody tr.under td{background:var(--sunk)}
 .buysline{font:500 11.5px/1.35 "Public Sans",sans-serif;color:var(--accent);margin-top:2px}
 thead th{font:600 10px/1.2 "Archivo",sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--hair)}
 tbody td{border-bottom:1px solid var(--hair);font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
@@ -283,6 +289,11 @@ body.editing .handle{display:block}
 .mini.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
 .mini:focus-visible{outline:2px solid var(--accent)}
 .saved{font-size:11.5px;color:var(--muted);text-align:center;padding:10px 0 0}
+.verdict{margin:10px 0 2px;font-size:14px;color:var(--body)}
+.verdict b{color:var(--ink)}.verdict b.bad{color:var(--owe)}.verdict b.good{color:var(--done)}
+.verdict .split{display:block;margin-top:4px;font-size:12.5px;color:var(--muted)}
+.savest{font:600 10px/1.2 "Archivo",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.savest.bad{color:var(--owe)}
 .ms li{padding:11px 14px}
 .ms .pip{flex:0 0 9px;width:9px;height:9px;border-radius:50%;background:var(--hair)}
 .ms li.big .pip{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
@@ -303,6 +314,7 @@ body.editing .ms .handle.mh{display:inline-flex}
     <div class="brand">
       <h1 class="daytitle" id="today">—</h1>
       <div class="right">
+        <span class="savest" id="savest" aria-live="polite"></span>
         <button class="editbtn" id="undobtn" disabled aria-label="Undo the last change" title="Undo (Ctrl+Z)">Undo</button>
         <button class="editbtn" id="editbtn" aria-pressed="false">Edit</button>
       </div>
@@ -322,10 +334,12 @@ body.editing .ms .handle.mh{display:inline-flex}
         <div class="lab">In the bank</div>
         <div class="fig"><span class="sym">$</span><input id="bal" type="text" inputmode="decimal" aria-label="Current bank balance"></div>
         <div class="floatbar">
-          <div class="row"><span>Against the floor of <span class="num" id="floorlab"></span></span><span class="num" id="floatpc"></span></div>
+          <div class="row"><span id="floorrow">Against the floor of <span class="num" id="floorlab"></span></span><span class="num" id="floatpc"></span></div>
           <div class="track" id="ftrack"><i id="fbar"></i></div>
+          <div class="verdict" id="verdict"></div>
           <div class="note" id="fnote"></div>
         </div>
+        <div class="payrow" id="balhint" hidden></div>
         <div class="payrow" id="payrow" hidden><button type="button" class="paybtn" id="paybtn">Pay landed</button><button type="button" class="mini" id="payskip">It is already in the balance</button></div>
       </div>
     </section>
@@ -484,6 +498,8 @@ body.editing .ms .handle.mh{display:inline-flex}
   </div>
 </div>
 
+<div class="toast" id="toast" hidden></div>
+<button type="button" class="fab" id="fab" aria-label="Log money in or out" title="Log money in or out">+</button>
 <nav class="tabs" role="tablist" aria-label="Sections">
   <button role="tab" id="t-now"   aria-selected="true"  aria-controls="p-now"><span class="dot"></span>Cash</button>
   <button role="tab" id="t-weeks" aria-selected="false" aria-controls="p-weeks"><span class="dot"></span>Weeks</button>
@@ -676,7 +692,10 @@ function payLanded(key,addIt){
   D.payIn[key]=true;balInput.value=money(D.balance);save();renderAll();
 }
 /* a tick means the money left the bank: the balance drops and the log gets a line. The untick finds that line and puts the money back. */
+var toastTimer=null;
+function toast(text){var tb=document.getElementById("toast");if(!tb)return;tb.innerHTML="";tb.appendChild(el("span",null,text));var u=el("button","mini on","Undo");u.type="button";u.addEventListener("click",function(){tb.hidden=true;undo();});tb.appendChild(u);tb.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){tb.hidden=true;},6000);}
 function moveOnTick(checked,amt,note,ref){
+  if(note)toast(note+(checked?" ticked \u00b7 \u2212":" unticked \u00b7 +")+money(num(amt)));
   if(!D.log)D.log=[];amt=num(amt);
   if(checked){D.balance=num(D.balance-amt);D.log.push({amt:-amt,dir:-1,note:note,at:Date.now(),ref:ref});}
   else{var i=-1;for(var k=D.log.length-1;k>=0;k--){if(D.log[k].ref===ref){i=k;break;}}
@@ -817,12 +836,26 @@ function renderNow(){
       np.hidden=false;np.className="callout "+(bounced.length?"bad":"good");
       np.innerHTML="<b>Next: "+same.map(function(x){return esc(pullName(x))+(x.of?" "+x.n+"/"+x.of:"")+" "+money(x.amt);}).join(", ")+"</b> "+(same.length>1?"("+money(tot)+") ":"")+"on "+fmtD(nxt.date)+", "+when+". "+money(num(D.balance))+" in the bank now. "+(bounced.length?bounced.map(function(x){return esc(pullName(x));}).join(", ")+(bounced.length===1?" bounces":" bounce")+" as things stand.":"Clears as things stand.");}
     else np.hidden=true;}
+  var bh=document.getElementById("balhint");if(bh){bh.innerHTML="";if(viewWeek===0&&BALHINT){var o=BALHINT;bh.hidden=false;
+    bh.appendChild(el("span",null,"That looks like <b>"+esc(o.nm)+" "+money(o.amt)+"</b>. "));
+    var b=el("button","mini on","Tick it, no double count");b.type="button";b.addEventListener("click",function(){
+      for(var k=D.log.length-1;k>=0;k--){if(D.log[k].ref==="balset"){D.log[k].ref=(o.kind==="pull"?"pull:":"line:")+o.id+(o.kind==="pull"?"":":"+weekKey(o.week));D.log[k].note=o.nm;break;}}
+      if(o.kind==="pull")D.paidPulls[o.id]=true;else{var kk=weekKey(o.week);D.paid[kk]=D.paid[kk]||{};D.paid[kk][o.id]=true;}
+      BALHINT=null;save();renderAll();});bh.appendChild(b);
+    var n=el("button","mini","No");n.type="button";n.addEventListener("click",function(){BALHINT=null;renderAll();});bh.appendChild(n);}
+    else bh.hidden=true;}
   var pr=document.getElementById("payrow");if(pr){if(!D.payIn)D.payIn={};pr.hidden=!(viewWeek===0&&!D.payIn[weekKey(nowP)]);document.getElementById("paybtn").textContent="Pay landed: +"+money(pay);}
   balInput.readOnly=viewWeek!==0;balInput.style.borderBottomStyle=viewWeek!==0?"solid":"dashed";
   if(document.activeElement!==balInput)balInput.value=money(gross);
-  document.getElementById("floorlab").textContent="$"+money0(floor);
   var net=gross-still;
-  var pc=floor>0?Math.min(100,Math.max(0,net/floor*100)):100;
+  var appSum=due.reduce(function(a,x){return a+(x.st!=="bounce"&&!D.paidPulls[x.id]?x.amt:0);},0),handSum=num(still-appSum);
+  var vd=document.getElementById("verdict");if(vd){var bn0=due.filter(function(x){return x.st==="bounce"&&x.date.getTime()>=today.getTime();}).length;
+    vd.innerHTML=(viewWeek<0?"<b>Week over.</b>":net<0?"<b class=\"bad\">Short by "+money(-net)+"</b>":net<floor?"<b>Covered</b>, under the floor":"<b class=\"good\">Covered, floor held</b>")+(bn0?" \u00b7 "+bn0+(bn0===1?" bounce":" bounces"):"")+
+      "<span class=\"split\">You move by hand <b>"+money(handSum)+"</b> \u00b7 the apps take <b>"+money(appSum)+"</b> \u00b7 left <b>"+money(net)+"</b></span>";}
+  var pc=floor>0?Math.min(100,Math.max(0,net/floor*100)):100,fr=document.getElementById("floorrow");
+  var nextL=null;D.lists.forEach(function(l){if(nextL||!listCounted(l)||listTotal(l)<=0)return;nextL=l;});
+  if(net>=floor&&nextL&&fr){var have=num(net-floor),needL=listTotal(nextL);pc=needL>0?Math.min(100,have/needL*100):100;fr.innerHTML="Saving for "+esc(nextL.nm)+": <span class=\"num\">"+money0(have)+" of "+money0(needL)+"</span>"+(P.reached[nextL.id]?" \u00b7 "+esc(fmtD(P.reached[nextL.id])):"");}
+  else if(fr)fr.innerHTML="Against the floor of <span class=\"num\" id=\"floorlab\">$"+money0(floor)+"</span>";
   document.getElementById("floatpc").textContent=Math.round(pc)+"%";
   document.getElementById("fbar").style.width=pc.toFixed(1)+"%";
   document.getElementById("ftrack").classList.toggle("over",net>=floor);
@@ -880,8 +913,13 @@ function pullRow(x,compact){
     var tag=el("button","tag t-"+(x.st==="bounce"?"bounce":label.indexOf("paid")===0?"paid":"due"),label);tag.type="button";
     var cnt=x.of?'<span class="cnt">'+x.n+"/"+x.of+"</span>":"";
     tag.setAttribute("aria-label","Tap to set this as bounced, tap again to let the forecast decide");
-    tag.addEventListener("click",function(){if(D.bouncePulls[x.id])delete D.bouncePulls[x.id];else{D.bouncePulls[x.id]=true;delete D.paidPulls[x.id];}save();renderAll();});
+    tag.addEventListener("click",function(){PENDTAG=PENDTAG===x.id?null:x.id;renderAll();});
     var nmEl=el("div","nm",esc(pullName(x))+cnt);nmEl.appendChild(tag);who.appendChild(nmEl);
+    if(PENDTAG===x.id){var ask=el("div","edrow");ask.style.marginTop="6px";
+      function mk2(txt,on,fn){var b=el("button","mini"+(on?" on":""),txt);b.type="button";b.addEventListener("click",function(){fn();PENDTAG=null;save();renderAll();});ask.appendChild(b);}
+      mk2("It bounced",!!D.bouncePulls[x.id],function(){D.bouncePulls[x.id]=true;if(D.paidPulls[x.id]){delete D.paidPulls[x.id];moveOnTick(false,x.amt,"","pull:"+x.id);}});
+      mk2("Let the forecast decide",!D.bouncePulls[x.id],function(){delete D.bouncePulls[x.id];});
+      who.appendChild(ask);who.appendChild(el("div","sub","A bounce adds the "+money(loanById(x.loan)?num(loanById(x.loan).fee):5)+" fee, retries a week later, and moves the later payments of this loan back a week."));}
     var sub=x.note;
     if(x.src&&x.date.getTime()!==x.orig.getTime())sub=(sub?sub+" \u00b7 ":"")+"slid from "+fmtD(x.orig);
     if(x.manual==="bounce")sub=(sub?sub+" \u00b7 ":"")+"set by you";
@@ -992,10 +1030,15 @@ function renderWeeks(){
   var more=document.getElementById("proj-more");more.hidden=P.rows.length<=26;
   more.textContent=showAllWeeks?"Show the first 26 weeks":"Show all "+P.rows.length+" weeks";
   more.onclick=function(){showAllWeeks=!showAllWeeks;renderWeeks();};
+  var futP=P.pulls.filter(function(x){return x.st==="paid"&&x.date.getTime()>=P.today.getTime()&&!x.ticked;}),lastPull=futP.length?futP[futP.length-1]:null,floorMet=false;
   (showAllWeeks?P.rows:P.rows.slice(0,26)).forEach(function(r){
     var tr=el("tr",r.buys>0?"buy":"");
     var td0=el("td",null,fmtD(r.date));
     if(r.buys>0)td0.appendChild(el("div","buysline","Buys "+money0(r.buys)+": "+esc(r.names.join(", "))));
+    if(r.bounces.length)td0.appendChild(el("div","buysline bad",r.bounces.map(function(b){return esc(pullName(b))+(b.of?" "+b.n+"/"+b.of:"");}).join(", ")+(r.bounces.length===1?" bounces":" bounce")));
+    if(lastPull&&lastPull.date.getTime()>=r.date.getTime()&&lastPull.date.getTime()<=r.end.getTime())td0.appendChild(el("div","buysline good","Debt free"));
+    if(!floorMet&&r.bal>=num(D.settings.floor)){floorMet=true;td0.appendChild(el("div","buysline good","Floor met"));}
+    tr.classList.toggle("under",r.bal>=0&&r.bal<num(D.settings.floor));
     tr.appendChild(td0);
     tr.appendChild(el("td",null,money(r.inn)));
     tr.appendChild(el("td",null,money(r.out)));
@@ -1021,7 +1064,7 @@ function renderWeeks(){
 }
 
 /* ---------- render: BUY ---------- */
-var listSortable=null,SEL={},QUERY="";
+var listSortable=null,SEL={},QUERY="",PENDTAG=null;
 function qmatch(s){return String(s||"").toLowerCase().indexOf(QUERY)>-1;}
 function itemMatches(x){return qmatch(x.nm)||qmatch(x.note);}
 function listMatches(l){return qmatch(l.nm)||qmatch(l.det)||l.items.some(itemMatches);}
@@ -1253,13 +1296,20 @@ var milesSortable=null;
 
 /* ---------- glue ---------- */
 function renderAll(){[renderNow,renderLog,renderWeeks,renderBuy,renderPlan].forEach(function(f){try{f();}catch(e){console.error(e);try{msg("Problem in "+f.name+": "+(e&&e.message||e));}catch(_){}}});}
-balInput.addEventListener("focus",function(){history.push(clone(D));if(history.length>60)history.shift();refreshUndo();});
+var balAtFocus=null,BALHINT=null;
+balInput.addEventListener("focus",function(){balAtFocus=num(D.balance);history.push(clone(D));if(history.length>60)history.shift();refreshUndo();});
 balInput.addEventListener("input",function(){if(viewWeek!==0)return;D.balance=num(balInput.value);lastSnap=clone(D);save(true);renderAll();});
-balInput.addEventListener("blur",function(){balInput.value=money(D.balance);});
+balInput.addEventListener("blur",function(){balInput.value=money(D.balance);
+  if(balAtFocus!=null&&viewWeek===0){var diff=num(D.balance-balAtFocus);balAtFocus=null;
+    if(Math.abs(diff)>=0.005){D.log.push({amt:diff,dir:diff<0?-1:1,note:"Balance set",at:Date.now(),ref:"balset"});
+      BALHINT=null;var c=cents(-diff);if(c>0){var td=new Date();td.setHours(0,0,0,0);var pW=currentPayday(td);
+        weekItems(pW,pW).concat(unticked(addDays(pW,-7),pW)).forEach(function(o){if(!BALHINT&&!o.ticked&&cents(o.amt)===c)BALHINT=o;});}
+      save();renderAll();}}});
 document.getElementById("wk-prev").addEventListener("click",function(){var first=fromIso(D.settings.firstPayday),today=new Date();today.setHours(0,0,0,0);var target=addDays(currentPayday(today),(viewWeek-1)*7);if(first&&target.getTime()<first.getTime())return;viewWeek--;renderNow();});
 document.getElementById("wk-next").addEventListener("click",function(){viewWeek++;renderNow();});
 document.getElementById("wk-home").addEventListener("click",function(){viewWeek=0;renderNow();});
 (function(){var q=document.getElementById("qsearch");if(q)q.addEventListener("input",function(){QUERY=q.value.trim().toLowerCase();renderBuy();});})();
+document.getElementById("fab").addEventListener("click",function(){showTab("now");var a=document.getElementById("log-amt");if(a){a.scrollIntoView({block:"center",behavior:"smooth"});a.focus();}});
 document.getElementById("paybtn").addEventListener("click",function(){var td=new Date();td.setHours(0,0,0,0);payLanded(weekKey(currentPayday(td)),true);});
 document.getElementById("payskip").addEventListener("click",function(){var td=new Date();td.setHours(0,0,0,0);payLanded(weekKey(currentPayday(td)),false);});
 document.getElementById("log-spent").addEventListener("click",function(){addLog(-1);});
@@ -1283,22 +1333,28 @@ document.getElementById("ln-add").addEventListener("click",function(){
   document.getElementById("ln-app").value="";document.getElementById("ln-total").value="";save();renderAll();
 });
 var PAGES=["now","weeks","buy","plan"];
-function showTab(p){PAGES.forEach(function(q){var on=q===p;document.getElementById("t-"+q).setAttribute("aria-selected",on?"true":"false");document.getElementById("p-"+q).hidden=!on;});document.getElementById("weekbar").hidden=p!=="now";window.scrollTo(0,0);}
+function showTab(p){PAGES.forEach(function(q){var on=q===p;document.getElementById("t-"+q).setAttribute("aria-selected",on?"true":"false");document.getElementById("p-"+q).hidden=!on;});document.getElementById("weekbar").hidden=p!=="now";var fb=document.getElementById("fab");if(fb)fb.hidden=p!=="now";window.scrollTo(0,0);}
 PAGES.forEach(function(p){document.getElementById("t-"+p).addEventListener("click",function(){showTab(p);});});
 (function(){var d=new Date();document.getElementById("today").textContent=d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});})();
 
 /* ---------- undo + persistence ---------- */
 var history=[], lastSnap=clone(D), undoBtn=document.getElementById("undobtn");
 function refreshUndo(){undoBtn.disabled=history.length===0;undoBtn.textContent="Undo"+(history.length?" ("+history.length+")":"");}
-function msg(t){var m=document.getElementById("savemsg");if(m)m.textContent=t;}
+function msg(t){var m=document.getElementById("savemsg");if(m)m.textContent=t;var s=document.getElementById("savest");if(s){s.textContent=t;s.className="savest"+(/could not|not saved|failed|did not/i.test(t)?" bad":"");}}
+var LOAD_FAILED=false,pendingWrite=null;
+function flushWrite(){if(pendingWrite){clearTimeout(saveTimer);var f=pendingWrite;pendingWrite=null;f();}}
+document.addEventListener("visibilitychange",function(){if(document.hidden)flushWrite();});
+window.addEventListener("pagehide",flushWrite);
 function write(noGist){
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(function(){
+  if(LOAD_FAILED){msg("Not saved: your data did not load. Close and reopen.");return;}
+  clearTimeout(saveTimer);msg("Saving\u2026");
+  pendingWrite=function(){pendingWrite=null;
     D.updatedAt=Date.now();var copy=clone(D);
     if(db)db.doc("app/data").set(copy).then(function(){msg("Saved");}).catch(function(){msg("Could not save. Your changes stay on screen only.");});
     else msg(lsSet(copy)?"Saved on this device":"Could not save on this device.");
     if(!noGist)gistQueue();
-  },700);
+  };
+  saveTimer=setTimeout(pendingWrite,700);
 }
 function save(skipHistory){
   if(!skipHistory){history.push(lastSnap);if(history.length>60)history.shift();lastSnap=clone(D);refreshUndo();}
@@ -1424,7 +1480,7 @@ if(!STANDALONE){
         });
       }
     });
-  }).catch(function(){STANDALONE=true;startStandalone();});
+  }).catch(function(){db=null;LOAD_FAILED=true;msg("Your saved data did not load. Nothing you do here is kept. Close and reopen.");});
 }else startStandalone();
 })();
 </script>
